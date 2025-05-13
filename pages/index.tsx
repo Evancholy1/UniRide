@@ -2,12 +2,45 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import RideCard from '@/components/RideCard'
+import { useRouter } from 'next/router'
+
+interface RideFromDB {
+  id: string
+  destination: string
+  date: string
+  seats_left: number
+  driver_id: string
+  ride_description: string
+  driver: {
+    name: string
+  }
+}
+
+interface TransformedRide {
+  id: string
+  destination: string
+  date: string
+  seats_left: number
+  driver: string
+  notes: string
+}
+
+
+export async function getServerSideProps() {
+  const { data: rides, error } = await supabase
+    .from('rides')
+    .select(`
+      *,
+      driver:driver_id(name)
+    `)
+    .order('date', { ascending: true })
 
 export default function HomePage() {
   const [rides, setRides] = useState<any[]>([])
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+
 
   useEffect(() => {
     const checkUserAndLoad = async () => {
@@ -42,6 +75,26 @@ export default function HomePage() {
     router.push('/login')
   }
 
+  // Transform the data to match the RideCard props
+  const transformedRides = (rides ?? []).map(ride => ({
+    id: ride.id,
+    destination: ride.destination,
+    date: ride.date,
+    seats_left: ride.seats_left,
+    driver: ride.driver.name,
+    notes: ride.ride_description
+  }))
+
+  return { props: { rides: transformedRides } }
+}
+
+export default function HomePage({ rides }: { rides: TransformedRide[] }) {
+  const router = useRouter();
+
+  const handleCreateRide = () => {
+    router.push('/rideForm');
+  };
+
   if (loading) return <p className="text-center mt-10">Loading...</p>
 
   return (
@@ -50,6 +103,12 @@ export default function HomePage() {
         <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
         <div className="text-right text-sm">
           <p>Welcome, {userEmail}</p>
+          <button
+          onClick={handleCreateRide}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 flex items-center"
+        >
+          <span className="mr-2">+</span> Create Ride
+        </button>
           <button onClick={handleLogout} className="text-red-600 underline hover:text-red-800 mt-1">
             Log out
           </button>
@@ -57,11 +116,29 @@ export default function HomePage() {
       </div>
 
       {rides.length > 0 ? (
-        rides.map((ride) => (
-          <RideCard key={ride.id} {...ride} />
-        ))
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {rides.map((ride) => (
+            <RideCard 
+              key={ride.id}
+              id={ride.id}
+              destination={ride.destination}
+              date={ride.date}
+              driver={ride.driver}
+              seats_left={ride.seats_left}
+              notes={ride.notes}
+            />
+          ))}
+        </div>
       ) : (
-        <p>No rides found.</p>
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <p className="text-gray-600">No rides available at the moment.</p>
+          <button
+            onClick={handleCreateRide}
+            className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Be the first to create a ride!
+          </button>
+        </div>
       )}
     </div>
   )
