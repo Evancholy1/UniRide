@@ -1,168 +1,99 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { supabase } from '../lib/supabaseClient';
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import { supabase } from '@/lib/supabaseClient'
 
-export default function RideForm() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    destination: '',
-    date: '',
-    seats_left: 1,
-    ride_description: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function CreateRidePage() {
+  const [destination, setDestination] = useState('')
+  const [date, setDate] = useState('')
+  const [seats, setSeats] = useState(1)
+  const [notes, setNotes] = useState('')
+  const [error, setError] = useState('')
+  const router = useRouter()
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Get the current user's ID
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error('Please login to create a ride');
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login')
       }
-
-      const { data, error } = await supabase
-        .from('rides')
-        .insert([
-          {
-            destination: formData.destination,
-            date: formData.date,
-            seats_left: formData.seats_left,
-            driver_id: user.id,
-            ride_description: formData.ride_description,
-          },
-        ])
-        .select();
-
-      if (error) throw error;
-
-      // Redirect to rides list or show success message
-      router.push('/');
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    checkSession()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    if (!user || userError) {
+      setError('User not found. Please log in.')
+      return
+    }
+
+    const { error: insertError } = await supabase.from('rides').insert({
+      destination,
+      date,
+      seats_left: seats,
+      notes,
+      driver_id: user.id, // ✅ foreign key to users table
+    })
+
+    if (insertError) {
+      console.error(insertError)
+      setError('Failed to create ride. Check your fields and try again.')
+    } else {
+      router.push('/') // redirect to homepage
+    }
+  }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="flex items-center mb-6">
-        <button
-          onClick={() => router.push('/')}
-          className="flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
-        >
-          <svg 
-            className="w-5 h-5 mr-2" 
-            fill="none" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth="2" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Rides
+    <div className="max-w-xl mx-auto mt-12 bg-white p-6 rounded shadow">
+      <h1 className="text-2xl font-bold mb-4">🚗 Post a New Ride</h1>
+
+      {error && <p className="text-red-500 mb-3">{error}</p>}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Destination (e.g., Eldora)"
+          className="w-full border p-2 rounded"
+          value={destination}
+          onChange={e => setDestination(e.target.value)}
+          required
+        />
+
+        <input
+          type="datetime-local"
+          className="w-full border p-2 rounded"
+          value={date}
+          onChange={e => setDate(e.target.value)}
+          required
+        />
+
+        <input
+          type="number"
+          min={1}
+          placeholder="Seats available"
+          className="w-full border p-2 rounded"
+          value={seats}
+          onChange={e => setSeats(Number(e.target.value))}
+          required
+        />
+
+        <textarea
+          placeholder="Notes (gear, car type, etc.)"
+          className="w-full border p-2 rounded"
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+        />
+
+
+        <button type="submit" className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+          Create Ride
         </button>
-      </div>
-
-      <h1 className="text-3xl font-bold mb-8">Create a New Ride</h1>
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="destination" className="block text-sm font-medium text-gray-700">
-            Destination
-          </label>
-          <input
-            type="text"
-            id="destination"
-            name="destination"
-            required
-            value={formData.destination}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-            Date and Time
-          </label>
-          <input
-            type="datetime-local"
-            id="date"
-            name="date"
-            required
-            value={formData.date}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="seats_left" className="block text-sm font-medium text-gray-700">
-            Available Seats
-          </label>
-          <input
-            type="number"
-            id="seats_left"
-            name="seats_left"
-            min="1"
-            max="10"
-            required
-            value={formData.seats_left}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="ride_description" className="block text-sm font-medium text-gray-700">
-            Ride Description
-          </label>
-          <textarea
-            id="ride_description"
-            name="ride_description"
-            required
-            value={formData.ride_description}
-            onChange={handleChange}
-            rows={4}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {loading ? 'Creating...' : 'Create Ride'}
-          </button>
-        </div>
       </form>
     </div>
-  );
+  )
 }
