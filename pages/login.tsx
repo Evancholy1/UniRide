@@ -11,16 +11,19 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
-    const { error } = await supabase.auth.signInWithPassword({
+  
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-
+  
     if (error) {
       setError(error.message)
     } else {
-      router.push('/') // Redirect to homepage or dashboard
+      // ✅ Add this: wait before redirecting so Supabase can store session
+      setTimeout(() => {
+        router.push('/')
+      }, 500)
     }
   }
 
@@ -48,6 +51,9 @@ export default function LoginPage() {
         <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
           Log In
         </button>
+        <p className="text-sm mt-4 text-center">
+          Don’t have an account? <a href="/register" className="text-green-600 underline">Sign up</a>
+        </p>
       </form>
     </div>
   )
