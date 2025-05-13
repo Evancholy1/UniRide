@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import RideCard from '@/components/RideCard'
-import { useRouter } from 'next/router'
 
 interface RideFromDB {
   id: string
@@ -25,7 +24,6 @@ interface TransformedRide {
   notes: string
 }
 
-
 export async function getServerSideProps() {
   const { data: rides, error } = await supabase
     .from('rides')
@@ -35,12 +33,28 @@ export async function getServerSideProps() {
     `)
     .order('date', { ascending: true })
 
-export default function HomePage() {
-  const [rides, setRides] = useState<any[]>([])
+  if (error) {
+    console.error('Error fetching rides:', error.message)
+    return { props: { rides: [] } }
+  }
+
+  const transformedRides = (rides ?? []).map(ride => ({
+    id: ride.id,
+    destination: ride.destination,
+    date: ride.date,
+    seats_left: ride.seats_left,
+    driver: ride.driver?.name || 'Unknown',
+    notes: ride.ride_description
+  }))
+
+  return { props: { rides: transformedRides } }
+}
+
+export default function HomePage({ rides: initialRides }: { rides: TransformedRide[] }) {
+  const [rides, setRides] = useState<TransformedRide[]>(initialRides)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-
 
   useEffect(() => {
     const checkUserAndLoad = async () => {
@@ -51,17 +65,28 @@ export default function HomePage() {
         return
       }
 
-      setUserEmail(session.user.email)
+      setUserEmail(session.user.email ?? null)
 
       const { data: rides, error } = await supabase
         .from('rides')
-        .select('*')
+        .select(`
+          *,
+          driver:driver_id(name)
+        `)
         .order('date', { ascending: true })
 
       if (error) {
         console.error('Failed to fetch rides:', error.message)
       } else {
-        setRides(rides ?? [])
+        const transformedRides = (rides ?? []).map(ride => ({
+          id: ride.id,
+          destination: ride.destination,
+          date: ride.date,
+          seats_left: ride.seats_left,
+          driver: ride.driver?.name || 'Unknown',
+          notes: ride.ride_description
+        }))
+        setRides(transformedRides)
       }
 
       setLoading(false)
@@ -75,25 +100,9 @@ export default function HomePage() {
     router.push('/login')
   }
 
-  // Transform the data to match the RideCard props
-  const transformedRides = (rides ?? []).map(ride => ({
-    id: ride.id,
-    destination: ride.destination,
-    date: ride.date,
-    seats_left: ride.seats_left,
-    driver: ride.driver.name,
-    notes: ride.ride_description
-  }))
-
-  return { props: { rides: transformedRides } }
-}
-
-export default function HomePage({ rides }: { rides: TransformedRide[] }) {
-  const router = useRouter();
-
   const handleCreateRide = () => {
-    router.push('/rideForm');
-  };
+    router.push('/rideForm')
+  }
 
   if (loading) return <p className="text-center mt-10">Loading...</p>
 
@@ -104,11 +113,11 @@ export default function HomePage({ rides }: { rides: TransformedRide[] }) {
         <div className="text-right text-sm">
           <p>Welcome, {userEmail}</p>
           <button
-          onClick={handleCreateRide}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 flex items-center"
-        >
-          <span className="mr-2">+</span> Create Ride
-        </button>
+            onClick={handleCreateRide}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 flex items-center"
+          >
+            <span className="mr-2">+</span> Create Ride
+          </button>
           <button onClick={handleLogout} className="text-red-600 underline hover:text-red-800 mt-1">
             Log out
           </button>
