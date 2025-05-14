@@ -9,12 +9,7 @@ export default function RideDetailsPage() {
   const [ride, setRide] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [hasJoined, setHasJoined] = useState(false)
-  const [submittedRating, setSubmittedRating] = useState(false)
   const [rideRatings, setRideRatings] = useState<any[]>([])
-
-  const [score, setScore] = useState(5)
-  const [comment, setComment] = useState('')
-  const [ratingError, setRatingError] = useState('')
 
   useEffect(() => {
     if (!id) return // ⛔ skip if id isn't ready yet
@@ -42,15 +37,6 @@ export default function RideDetailsPage() {
         .maybeSingle()
   
       if (joined) setHasJoined(true)
-  
-      const { data: existingRating } = await supabase
-        .from('ratings')
-        .select('*')
-        .eq('ride_id', id)
-        .eq('rater_id', currentUser.id)
-        .maybeSingle()
-  
-      if (existingRating) setSubmittedRating(true)
 
       // Fetch ratings for this ride if it's completed
       if (rideData.is_completed) {
@@ -93,19 +79,6 @@ export default function RideDetailsPage() {
     }
   }
 
-  const handleComplete = async () => {
-    const { error } = await supabase
-      .from('rides')
-      .update({ is_completed: true })
-      .eq('id', id)
-
-    if (error) {
-      alert('Failed to mark ride as completed. Please try again.')
-    } else {
-      refreshRide()
-    }
-  }
-
   const handleJoin = async () => {
     if (!user || !ride || ride.seats_left <= 0) return
   
@@ -140,30 +113,6 @@ export default function RideDetailsPage() {
       }
     }
   }
-  
-
-  const handleRatingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setRatingError('')
-
-    if (!user) return
-
-    const { error } = await supabase.from('ratings').insert({
-      ride_id: ride.id,
-      driver_id: ride.driver_id,
-      rater_id: user.id,
-      score,
-      comment,
-    })
-
-    if (error) {
-      console.error(error)
-      setRatingError('Error submitting rating.')
-    } else {
-      setSubmittedRating(true)
-      refreshRide()
-    }
-  }
 
   if (!ride || !user) return <p>Loading...</p>
 
@@ -186,18 +135,15 @@ export default function RideDetailsPage() {
         </a> ({ride.users?.email})
       </p>
 
-      {/* Mark complete */}
-      {isDriver && !ride.is_completed && (
-        <button
-          onClick={handleComplete}
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-        >
-          ✅ Mark as Completed
-        </button>
+      {/* Note about ride management */}
+      {(isDriver || hasJoined) && (
+        <div className="bg-gray-50 p-3 rounded text-sm text-gray-600 border">
+          <p>⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-600 hover:underline">My Rides</a> page.</p>
+        </div>
       )}
 
       {/* Join Ride */}
-      {!isDriver && !hasJoined && ride.seats_left > 0 && (
+      {!isDriver && !hasJoined && ride.seats_left > 0 && !ride.is_completed && (
         <button
           onClick={handleJoin}
           className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
@@ -208,45 +154,6 @@ export default function RideDetailsPage() {
 
       {hasJoined && !isDriver && (
         <p className="text-green-600 font-medium">✅ You've joined this ride</p>
-      )}
-
-      {/* Rating form */}
-      {!isDriver && ride.is_completed && !submittedRating && (
-        <form onSubmit={handleRatingSubmit} className="mt-6 space-y-4 border-t pt-4">
-          <h3 className="text-lg font-semibold">Rate this ride</h3>
-          {ratingError && <p className="text-red-500 text-sm">{ratingError}</p>}
-
-          <label className="block">
-            <span className="text-sm text-gray-700">Rating (1–5)</span>
-            <select
-              value={score}
-              onChange={(e) => setScore(Number(e.target.value))}
-              className="mt-1 block w-full border rounded p-2"
-            >
-              {[5, 4, 3, 2, 1].map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-sm text-gray-700">Comment (optional)</span>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="mt-1 block w-full border rounded p-2"
-              placeholder="Any feedback?"
-            />
-          </label>
-
-          <button className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-            Submit Rating
-          </button>
-        </form>
-      )}
-
-      {submittedRating && !isDriver && (
-        <p className="mt-4 text-green-600 font-medium">✅ You rated this ride</p>
       )}
 
       {/* Ratings & Reviews Section */}
