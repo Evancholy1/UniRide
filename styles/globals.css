@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+body {
+    @apply bg-gray-900 text-white;
+  }
+  
+  /* Global form input styles */
+  input,
+  textarea,
+  select {
+    @apply bg-gray-800 text-white border border-gray-700 rounded p-2 placeholder-gray-400;
+  }
+  
+  /* Ensure buttons match theme */
+  button {
+    @apply bg-gray-700 text-white hover:bg-gray-600 transition;
+  }
+  

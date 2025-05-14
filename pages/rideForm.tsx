@@ -54,7 +54,7 @@ export default function CreateRidePage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-12 bg-white p-6 rounded shadow">
+    <div className="max-w-xl mx-auto mt-12 bg-gray-800 p-6 rounded shadow">
       <h1 className="text-2xl font-bold mb-4">🚗 Post a New Ride</h1>
 
       {error && <p className="text-red-500 mb-3">{error}</p>}

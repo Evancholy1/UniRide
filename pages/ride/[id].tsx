@@ -154,7 +154,7 @@ export default function RideDetailsPage() {
   const isDriver = ride.driver_id === user.id
 
   return (
-    <div className="p-6 max-w-xl mx-auto bg-white rounded shadow space-y-4">
+    <div className="p-6 max-w-xl mx-auto bg-gray-800 rounded shadow space-y-4">
       <h1 className="text-2xl font-bold">🚗 Ride to {ride.destination}</h1>
       
       {ride.category && (
@@ -219,43 +219,41 @@ export default function RideDetailsPage() {
         <p className="text-green-600 font-medium">✅ You've joined this ride</p>
       )}
 
-      {/* Ratings & Reviews Section */}
-      {ride.is_completed && rideRatings.length > 0 && (
-        <div className="mt-8 border-t pt-4">
-          <h3 className="text-lg font-semibold mb-4">
-            ⭐ Ratings & Reviews ({rideRatings.length})
-          </h3>
-          
-          <ul className="space-y-4">
-            {rideRatings.map((rating: any) => (
-              <li key={rating.id} className="border-b pb-4">
-                <div className="flex justify-between">
-                  <div>
-                    <a 
-                      href={`/profile/${rating.rater_id}`}
-                      className="font-medium text-blue-600 hover:underline"
-                    >
-                      {rating.users.name}
-                    </a>
-                  </div>
-                  <div className="text-yellow-500 font-bold">
-                    {rating.score} ⭐
-                  </div>
-                </div>
-                
-                {rating.comment && (
-                  <div className="mt-2 italic">
-                    "{rating.comment}"
-                  </div>
-                )}
-                
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(rating.created_at).toLocaleString()}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+
+      {/* Rating form */}
+      {!isDriver && ride.is_completed && !submittedRating && (
+        <form onSubmit={handleRatingSubmit} className="mt-6 space-y-4 border-t pt-4">
+          <h3 className="text-lg font-semibold">Rate this ride</h3>
+          {ratingError && <p className="text-red-500 text-sm">{ratingError}</p>}
+
+          <label className="block">
+            <span className="text-sm text-white">Rating (1–5)</span>
+            <select
+              value={score}
+              onChange={(e) => setScore(Number(e.target.value))}
+              className="mt-1 block w-full border rounded p-2"
+            >
+              {[5, 4, 3, 2, 1].map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm text-white">Comment (optional)</span>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="mt-1 block w-full border rounded p-2"
+              placeholder="Any feedback?"
+            />
+          </label>
+
+          <button className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+            Submit Rating
+          </button>
+        </form>
+
       )}
       
       {/* Note about ride management */}

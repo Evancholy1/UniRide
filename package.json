@@ -10,11 +10,15 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
+    "clsx": "^2.1.1",
     "firebase": "^11.7.1",
+    "framer-motion": "^12.11.3",
+    "motion": "^12.11.3",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "supabase": "^2.22.12"
+    "supabase": "^2.22.12",
+    "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
