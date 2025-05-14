@@ -10,6 +10,7 @@ export default function RideDetailsPage() {
   const [user, setUser] = useState<any>(null)
   const [hasJoined, setHasJoined] = useState(false)
   const [submittedRating, setSubmittedRating] = useState(false)
+  const [rideRatings, setRideRatings] = useState<any[]>([])
 
   const [score, setScore] = useState(5)
   const [comment, setComment] = useState('')
@@ -50,6 +51,20 @@ export default function RideDetailsPage() {
         .maybeSingle()
   
       if (existingRating) setSubmittedRating(true)
+
+      // Fetch ratings for this ride if it's completed
+      if (rideData.is_completed) {
+        const { data: ratings } = await supabase
+          .from('ratings')
+          .select(`
+            *,
+            users:rater_id(id, name)
+          `)
+          .eq('ride_id', id)
+          .order('created_at', { ascending: false })
+
+        setRideRatings(ratings || [])
+      }
     }
   
     fetchData()
@@ -62,6 +77,20 @@ export default function RideDetailsPage() {
       .eq('id', id)
       .single()
     setRide(updated)
+
+    // Refresh ratings if the ride is completed
+    if (updated?.is_completed) {
+      const { data: ratings } = await supabase
+        .from('ratings')
+        .select(`
+          *,
+          users:rater_id(id, name)
+        `)
+        .eq('ride_id', id)
+        .order('created_at', { ascending: false })
+
+      setRideRatings(ratings || [])
+    }
   }
 
   const handleComplete = async () => {
@@ -70,7 +99,11 @@ export default function RideDetailsPage() {
       .update({ is_completed: true })
       .eq('id', id)
 
-    if (!error) refreshRide()
+    if (error) {
+      alert('Failed to mark ride as completed. Please try again.')
+    } else {
+      refreshRide()
+    }
   }
 
   const handleJoin = async () => {
@@ -87,27 +120,23 @@ export default function RideDetailsPage() {
       return
     }
   
-    // 2. Update ride or delete if full
+    // 2. Update ride with new seats count
     const newSeats = ride.seats_left - 1
   
-    if (newSeats <= 0) {
-      const { error: deleteError } = await supabase.from('rides').delete().eq('id', ride.id)
-      if (deleteError) {
-        console.error('Delete error:', deleteError)
-      } else {
-        router.push('/') // ✅ redirect after deletion
-      }
+    const { error: updateError } = await supabase
+      .from('rides')
+      .update({ seats_left: newSeats })
+      .eq('id', ride.id)
+
+    if (updateError) {
+      console.error('Update error:', updateError)
     } else {
-      const { error: updateError } = await supabase
-        .from('rides')
-        .update({ seats_left: newSeats })
-        .eq('id', ride.id)
-  
-      if (updateError) {
-        console.error('Update error:', updateError)
-      } else {
-        await refreshRide()
-        setHasJoined(true)
+      await refreshRide()
+      setHasJoined(true)
+      
+      // If no seats left, redirect to home page
+      if (newSeats <= 0) {
+        router.push('/')
       }
     }
   }
@@ -132,6 +161,7 @@ export default function RideDetailsPage() {
       setRatingError('Error submitting rating.')
     } else {
       setSubmittedRating(true)
+      refreshRide()
     }
   }
 
@@ -146,7 +176,15 @@ export default function RideDetailsPage() {
       <p><strong>Seats Left:</strong> {ride.seats_left}</p>
       <p><strong>Description:</strong> {ride.ride_description}</p>
       <p><strong>Completed:</strong> {ride.is_completed ? '✅ Yes' : '❌ No'}</p>
-      <p><strong>Driver:</strong> {ride.users?.name} ({ride.users?.email})</p>
+      <p>
+        <strong>Driver:</strong> {' '}
+        <a 
+          className="text-blue-600 hover:underline"
+          href={`/profile/${ride.driver_id}`}
+        >
+          {ride.users?.name}
+        </a> ({ride.users?.email})
+      </p>
 
       {/* Mark complete */}
       {isDriver && !ride.is_completed && (
@@ -169,7 +207,7 @@ export default function RideDetailsPage() {
       )}
 
       {hasJoined && !isDriver && (
-        <p className="text-green-600 font-medium">✅ You’ve joined this ride</p>
+        <p className="text-green-600 font-medium">✅ You've joined this ride</p>
       )}
 
       {/* Rating form */}
@@ -209,6 +247,45 @@ export default function RideDetailsPage() {
 
       {submittedRating && !isDriver && (
         <p className="mt-4 text-green-600 font-medium">✅ You rated this ride</p>
+      )}
+
+      {/* Ratings & Reviews Section */}
+      {ride.is_completed && rideRatings.length > 0 && (
+        <div className="mt-8 border-t pt-4">
+          <h3 className="text-lg font-semibold mb-4">
+            ⭐ Ratings & Reviews ({rideRatings.length})
+          </h3>
+          
+          <ul className="space-y-4">
+            {rideRatings.map((rating: any) => (
+              <li key={rating.id} className="border-b pb-4">
+                <div className="flex justify-between">
+                  <div>
+                    <a 
+                      href={`/profile/${rating.rater_id}`}
+                      className="font-medium text-blue-600 hover:underline"
+                    >
+                      {rating.users.name}
+                    </a>
+                  </div>
+                  <div className="text-yellow-500 font-bold">
+                    {rating.score} ⭐
+                  </div>
+                </div>
+                
+                {rating.comment && (
+                  <div className="mt-2 italic">
+                    "{rating.comment}"
+                  </div>
+                )}
+                
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(rating.created_at).toLocaleString()}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   )
