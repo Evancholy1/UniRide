@@ -120,40 +120,46 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
     <div className="max-w-xl mx-auto mt-8 space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
-        <h2 className="text-4xl text-red-500 font-bold">Tailwind is working!</h2>
 
         <div className="text-right text-sm space-y-1">
-  <p>Welcome, {userEmail}</p>
+          <p>Welcome, {userEmail}</p>
   
-    <div className="flex gap-2 flex-wrap justify-end">
-        <button
-          onClick={() => router.push('/my_rides')}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
-        >
-          My Rides
-        </button>
+          <div className="flex gap-2 flex-wrap justify-end">
+            <button
+              onClick={() => router.push('/my_rides')}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+            >
+              My Rides
+            </button>
 
-        <button
-          onClick={() => userId && router.push(`/profile/${userId}`)}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
-        >
-          Profile
-        </button>
+            <button
+              onClick={() => router.push('/messages')}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+            >
+              💬 Messages
+            </button>
 
-        <button
-          onClick={handleCreateRide}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
-        >
-          + Create Ride
-        </button>
+            <button
+              onClick={() => userId && router.push(`/profile/${userId}`)}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+            >
+              Profile
+            </button>
 
-        <button
-          onClick={handleLogout}
-          className="text-red-600 underline hover:text-red-800"
-        >
-          Log out
-        </button>
-            </div>
+            <button
+              onClick={handleCreateRide}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
+            >
+              + Create Ride
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="text-red-600 underline hover:text-red-800"
+            >
+              Log out
+            </button>
+          </div>
         </div>
       </div>
 

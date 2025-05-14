@@ -1,25 +1,30 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '@/lib/AuthProvider'
 
 export default function RideDetailsPage() {
   const router = useRouter()
   const { id } = router.query
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
 
   const [ride, setRide] = useState<any>(null)
-  const [user, setUser] = useState<any>(null)
   const [hasJoined, setHasJoined] = useState(false)
   const [rideRatings, setRideRatings] = useState<any[]>([])
   const [passengers, setPassengers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
-    if (!id) return // ⛔ skip if id isn't ready yet
+    if (!id || !user) return // ⛔ skip if id isn't ready yet or user not loaded
   
     const fetchData = async () => {
-      const { data: session } = await supabase.auth.getUser()
-      const currentUser = session.user
-      setUser(currentUser)
-  
       const { data: rideData } = await supabase
         .from('rides')
         .select('*, users(name, email)')
@@ -28,14 +33,14 @@ export default function RideDetailsPage() {
   
       setRide(rideData)
   
-      if (!currentUser || !rideData) return
+      if (!rideData) return
   
       // Check if current user has joined
       const { data: joined } = await supabase
         .from('ride_passengers')
         .select('*')
         .eq('ride_id', id)
-        .eq('passenger_id', currentUser.id)
+        .eq('passenger_id', user.id)
         .maybeSingle()
   
       if (joined) setHasJoined(true)
@@ -64,10 +69,12 @@ export default function RideDetailsPage() {
 
         setRideRatings(ratings || [])
       }
+      
+      setLoading(false)
     }
   
     fetchData()
-  }, [id])
+  }, [id, user])
 
   const refreshRide = async () => {
     const { data: updated } = await supabase
@@ -138,6 +145,45 @@ export default function RideDetailsPage() {
     }
   }
 
+  // Function to start a chat with a user
+  const startChat = async (otherUserId: string) => {
+    if (!user) return;
+    
+    try {
+      console.log('Starting chat with user:', otherUserId);
+      console.log('Current user:', user.id);
+      console.log('Ride ID:', id);
+      
+      // Create or get existing chat
+      const response = await fetch('/api/chats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for authentication
+        body: JSON.stringify({
+          otherUserId,
+          rideId: id
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Response not OK:', response.status, errorData);
+        throw new Error('Failed to create chat: ' + (errorData.error || response.statusText));
+      }
+      
+      const data = await response.json();
+      console.log('Chat created/found:', data);
+      
+      // Navigate to the chat page
+      router.push(`/messages/${data.id}`);
+    } catch (error: any) {
+      console.error('Error starting chat:', error);
+      alert('Could not start chat. Please try again. Error: ' + error.message);
+    }
+  };
+
   // Helper function to get category icon
   const getCategoryIcon = (cat?: string) => {
     switch(cat) {
@@ -149,7 +195,8 @@ export default function RideDetailsPage() {
     }
   };
 
-  if (!ride || !user) return <p>Loading...</p>
+  // Show loading while auth or ride data is loading
+  if (authLoading || loading || !ride || !user) return <p>Loading...</p>
 
   const isDriver = ride.driver_id === user.id
 
@@ -167,15 +214,27 @@ export default function RideDetailsPage() {
       <p><strong>Seats Left:</strong> {ride.seats_left}</p>
       <p><strong>Description:</strong> {ride.ride_description}</p>
       <p><strong>Completed:</strong> {ride.is_completed ? '✅ Yes' : '❌ No'}</p>
-      <p>
-        <strong>Driver:</strong> {' '}
-        <a 
-          className="text-blue-600 hover:underline"
-          href={`/profile/${ride.driver_id}`}
-        >
-          {ride.users?.name}
-        </a> ({ride.users?.email})
-      </p>
+      <div className="flex justify-between items-center">
+        <p>
+          <strong>Driver:</strong> {' '}
+          <a 
+            className="text-blue-600 hover:underline"
+            href={`/profile/${ride.driver_id}`}
+          >
+            {ride.users?.name}
+          </a> ({ride.users?.email})
+        </p>
+        
+        {/* Message Driver Button */}
+        {!isDriver && user && !ride.is_completed && (
+          <button
+            onClick={() => startChat(ride.driver_id)}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-full text-sm flex items-center gap-1"
+          >
+            <span>💬</span> Message Driver
+          </button>
+        )}
+      </div>
 
       {/* Passengers Section */}
       <div className="border-t pt-4 mt-4">
@@ -186,17 +245,29 @@ export default function RideDetailsPage() {
         {passengers.length > 0 ? (
           <ul className="space-y-2">
             {passengers.map((passenger) => (
-              <li key={passenger.passenger_id} className="flex items-center">
-                <span className="mr-2">•</span>
-                <a 
-                  href={`/profile/${passenger.passenger_id}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {passenger.users?.name}
-                </a>
-                <span className="text-gray-500 text-sm ml-2">
-                  ({passenger.users?.email})
-                </span>
+              <li key={passenger.passenger_id} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="mr-2">•</span>
+                  <a 
+                    href={`/profile/${passenger.passenger_id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {passenger.users?.name}
+                  </a>
+                  <span className="text-gray-500 text-sm ml-2">
+                    ({passenger.users?.email})
+                  </span>
+                </div>
+                
+                {/* Message Passenger Button */}
+                {user && user.id !== passenger.passenger_id && !ride.is_completed && (
+                  <button
+                    onClick={() => startChat(passenger.passenger_id)}
+                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1"
+                  >
+                    <span>💬</span> Message
+                  </button>
+                )}
               </li>
             ))}
           </ul>
