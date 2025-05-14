@@ -32,11 +32,14 @@ export default function CreateRidePage() {
       return
     }
 
+    console.log('Attempting ride insert with driver ID:', user.id)
+
+
     const { error: insertError } = await supabase.from('rides').insert({
       destination,
       date,
       seats_left: seats,
-      notes,
+      ride_description: notes,
       driver_id: user.id, // ✅ foreign key to users table
     })
 

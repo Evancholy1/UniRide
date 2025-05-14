@@ -5,26 +5,28 @@ import { useRouter } from 'next/router'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
-  const [name, setName] = useState('')
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-  
-    const { data: signUpData, error } = await supabase.auth.signUp({
+
+    // Step 1: Sign up with Supabase Auth
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     })
-  
-    if (error) {
-      setError(error.message)
+
+    if (signUpError) {
+      setError(signUpError.message)
       return
     }
-  
-    // ✅ Insert into your `users` table
+
     const user = signUpData.user
+
+    // Step 2: Insert into custom users table (must match foreign key constraint)
     if (user) {
       const { error: insertError } = await supabase.from('users').insert({
         id: user.id,
@@ -32,32 +34,31 @@ export default function RegisterPage() {
         name: name,
         verified: false,
       })
-  
+
       if (insertError) {
         console.error('Insert error:', insertError)
+        console.log('Tried inserting user with ID:', user.id)
 
-        console.log('Inserting user:', {
-            id: user.id,
-            email: user.email,
-            verified: false
-          })          
         setError('Account created, but failed to save profile info.')
         return
       }
+
+      // Optional: wait to ensure session sync before redirect
+      await new Promise(res => setTimeout(res, 500))
+      router.push('/')
     }
-  
-    router.push('/') // or '/verify' if you want to verify CU student status
-  }  
+  }
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <form onSubmit={handleRegister} className="bg-white p-8 rounded shadow w-80">
-        <h2 className="text-2xl mb-4 font-bold">Create Account</h2>
+        <h2 className="text-2xl font-bold mb-4">Create Account</h2>
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+
         <input
           className="w-full border p-2 rounded mb-2"
           type="text"
-          placeholder="Name"
+          placeholder="Full Name"
           value={name}
           onChange={e => setName(e.target.value)}
           required
@@ -80,11 +81,16 @@ export default function RegisterPage() {
           onChange={e => setPassword(e.target.value)}
           required
         />
+
         <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">
           Sign Up
         </button>
+
         <p className="text-sm mt-4 text-center">
-          Already have an account? <a href="/login" className="text-blue-600 underline">Log in</a>
+          Already have an account?{' '}
+          <a href="/login" className="text-blue-600 underline">
+            Log in
+          </a>
         </p>
       </form>
     </div>
