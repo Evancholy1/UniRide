@@ -10,6 +10,7 @@ interface RideFromDB {
   seats_left: number
   driver_id: string
   ride_description: string
+  category: string
   driver: {
     name: string
   }
@@ -22,6 +23,7 @@ interface TransformedRide {
   seats_left: number
   driver: string
   notes: string
+  category: string
 }
 
 export async function getServerSideProps() {
@@ -46,7 +48,8 @@ export async function getServerSideProps() {
     date: ride.date,
     seats_left: ride.seats_left,
     driver: ride.driver?.name || 'Unknown',
-    notes: ride.ride_description
+    notes: ride.ride_description,
+    category: ride.category || 'Other'
   }))
 
   return { props: { rides: transformedRides } }
@@ -90,7 +93,8 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
           date: ride.date,
           seats_left: ride.seats_left,
           driver: ride.driver?.name || 'Unknown',
-          notes: ride.ride_description
+          notes: ride.ride_description,
+          category: ride.category || 'Other'
         }))
         setRides(transformedRides)
       }
@@ -164,6 +168,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
               driver={ride.driver}
               seats_left={ride.seats_left}
               notes={ride.notes}
+              category={ride.category}
             />
           ))}
         </div>
