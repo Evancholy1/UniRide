@@ -58,7 +58,7 @@ export default function MyRidesPage() {
       <h1 className="text-2xl font-bold mb-4">🚘 My Rides</h1>
 
       {/* Driving section */}
-      <div className="bg-gray-50 p-4 rounded shadow">
+      <div className="bg-gray-800 p-4 rounded shadow">
         <div
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setShowDriving(!showDriving)}
@@ -74,10 +74,10 @@ export default function MyRidesPage() {
               driving.map((ride) => (
                 <li
                   key={ride.id}
-                  className="p-4 border rounded hover:bg-blue-50 transition"
+                   className="p-4 border border-gray-700 rounded bg-gray-800 hover:bg-gray-700 text-white transition"
                 >
                   <div className="font-medium">To {ride.destination}</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-300">
                     {new Date(ride.date).toLocaleString()}
                   </div>
                 </li>
@@ -90,7 +90,7 @@ export default function MyRidesPage() {
       </div>
 
       {/* Joined section */}
-      <div className="bg-gray-50 p-4 rounded shadow">
+      <div className="bg-gray-800 p-4 rounded shadow">
         <div
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setShowJoined(!showJoined)}
@@ -106,7 +106,7 @@ export default function MyRidesPage() {
               joined.map((ride) => (
                 <li
                   key={ride.id}
-                  className="p-4 border rounded hover:bg-green-50 transition"
+                   className="p-4 border border-gray-700 rounded bg-gray-800 hover:bg-gray-700 text-white transition"
                 >
                   <div className="font-medium">To {ride.destination}</div>
                   <div className="text-sm text-gray-600">

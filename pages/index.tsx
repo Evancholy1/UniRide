@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
+import { HoverEffect } from '@/components/hoverCardGrid'
 import RideCard from '@/components/RideCard'
 
 interface RideFromDB {
@@ -142,18 +143,13 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
       </div>
 
       {rides.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rides.map((ride) => (
-            <RideCard 
-              key={ride.id}
-              id={ride.id}
-              destination={ride.destination}
-              date={ride.date}
-              driver={ride.driver}
-              seats_left={ride.seats_left}
-              notes={ride.notes}
+        <div className="max-w-6xl mx-auto">
+          <HoverEffect
+              items={rides.map(ride => ({
+                ...ride,
+                link: `/ride/${ride.id}` // dynamic route
+              }))}
             />
-          ))}
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-lg">

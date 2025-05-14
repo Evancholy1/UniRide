@@ -140,7 +140,7 @@ export default function RideDetailsPage() {
   const isDriver = ride.driver_id === user.id
 
   return (
-    <div className="p-6 max-w-xl mx-auto bg-white rounded shadow space-y-4">
+    <div className="p-6 max-w-xl mx-auto bg-gray-800 rounded shadow space-y-4">
       <h1 className="text-2xl font-bold">🚗 Ride to {ride.destination}</h1>
       <p><strong>Date:</strong> {new Date(ride.date).toLocaleString()}</p>
       <p><strong>Seats Left:</strong> {ride.seats_left}</p>
@@ -179,7 +179,7 @@ export default function RideDetailsPage() {
           {ratingError && <p className="text-red-500 text-sm">{ratingError}</p>}
 
           <label className="block">
-            <span className="text-sm text-gray-700">Rating (1–5)</span>
+            <span className="text-sm text-white">Rating (1–5)</span>
             <select
               value={score}
               onChange={(e) => setScore(Number(e.target.value))}
@@ -192,7 +192,7 @@ export default function RideDetailsPage() {
           </label>
 
           <label className="block">
-            <span className="text-sm text-gray-700">Comment (optional)</span>
+            <span className="text-sm text-white">Comment (optional)</span>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
