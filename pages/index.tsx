@@ -11,6 +11,7 @@ interface RideFromDB {
   seats_left: number
   driver_id: string
   ride_description: string
+  category: string
   driver: {
     name: string
   }
@@ -23,6 +24,7 @@ interface TransformedRide {
   seats_left: number
   driver: string
   notes: string
+  category: string
 }
 
 export async function getServerSideProps() {
@@ -33,6 +35,7 @@ export async function getServerSideProps() {
       driver:driver_id(name)
     `)
     .gte('seats_left', 1)
+    .eq('is_completed', false)
     .order('date', { ascending: true })
 
   if (error) {
@@ -46,7 +49,8 @@ export async function getServerSideProps() {
     date: ride.date,
     seats_left: ride.seats_left,
     driver: ride.driver?.name || 'Unknown',
-    notes: ride.ride_description
+    notes: ride.ride_description,
+    category: ride.category || 'Other'
   }))
 
   return { props: { rides: transformedRides } }
@@ -55,6 +59,7 @@ export async function getServerSideProps() {
 export default function HomePage({ rides: initialRides }: { rides: TransformedRide[] }) {
   const [rides, setRides] = useState<TransformedRide[]>(initialRides)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -68,6 +73,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
       }
 
       setUserEmail(session.user.email ?? null)
+      setUserId(session.user.id)
 
       const { data: rides, error } = await supabase
         .from('rides')
@@ -75,6 +81,8 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
           *,
           driver:driver_id(name)
         `)
+        .gte('seats_left', 1)
+        .eq('is_completed', false)
         .order('date', { ascending: true })
 
       if (error) {
@@ -86,7 +94,8 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
           date: ride.date,
           seats_left: ride.seats_left,
           driver: ride.driver?.name || 'Unknown',
-          notes: ride.ride_description
+          notes: ride.ride_description,
+          category: ride.category || 'Other'
         }))
         setRides(transformedRides)
       }
@@ -119,24 +128,31 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
   
     <div className="flex gap-2 flex-wrap justify-end">
         <button
-        onClick={() => router.push('/my_rides')}
-        className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+          onClick={() => router.push('/my_rides')}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
         >
-        My Rides
+          My Rides
         </button>
 
         <button
-        onClick={handleCreateRide}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
+          onClick={() => userId && router.push(`/profile/${userId}`)}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
         >
-        + Create Ride
+          Profile
         </button>
 
         <button
-        onClick={handleLogout}
-        className="text-red-600 underline hover:text-red-800"
+          onClick={handleCreateRide}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
         >
-        Log out
+          + Create Ride
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="text-red-600 underline hover:text-red-800"
+        >
+          Log out
         </button>
             </div>
         </div>
@@ -149,6 +165,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
                 ...ride,
                 link: `/ride/${ride.id}` // dynamic route
               }))}
+
             />
         </div>
       ) : (

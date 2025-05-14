@@ -7,6 +7,7 @@ export default function CreateRidePage() {
   const [date, setDate] = useState('')
   const [seats, setSeats] = useState(1)
   const [notes, setNotes] = useState('')
+  const [category, setCategory] = useState('Other')
   const [error, setError] = useState('')
   const router = useRouter()
 
@@ -41,6 +42,7 @@ export default function CreateRidePage() {
       seats_left: seats,
       ride_description: notes,
       driver_id: user.id, // ✅ foreign key to users table
+      category, // Add the category field
     })
 
     if (insertError) {
@@ -74,6 +76,18 @@ export default function CreateRidePage() {
           onChange={e => setDate(e.target.value)}
           required
         />
+
+        <select
+          className="w-full border p-2 rounded"
+          value={category}
+          onChange={e => setCategory(e.target.value)}
+          required
+        >
+          <option value="Airport">Airport</option>
+          <option value="Outdoor Activity">Outdoor Activity</option>
+          <option value="Event">Event</option>
+          <option value="Other">Other</option>
+        </select>
 
         <input
           type="number"
