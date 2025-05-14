@@ -10,6 +10,7 @@ export default function RideDetailsPage() {
   const [user, setUser] = useState<any>(null)
   const [hasJoined, setHasJoined] = useState(false)
   const [rideRatings, setRideRatings] = useState<any[]>([])
+  const [passengers, setPassengers] = useState<any[]>([])
 
   useEffect(() => {
     if (!id) return // ⛔ skip if id isn't ready yet
@@ -29,6 +30,7 @@ export default function RideDetailsPage() {
   
       if (!currentUser || !rideData) return
   
+      // Check if current user has joined
       const { data: joined } = await supabase
         .from('ride_passengers')
         .select('*')
@@ -37,6 +39,17 @@ export default function RideDetailsPage() {
         .maybeSingle()
   
       if (joined) setHasJoined(true)
+
+      // Fetch all passengers for this ride
+      const { data: passengersData } = await supabase
+        .from('ride_passengers')
+        .select(`
+          passenger_id,
+          users:passenger_id(id, name, email)
+        `)
+        .eq('ride_id', id)
+      
+      setPassengers(passengersData || [])
 
       // Fetch ratings for this ride if it's completed
       if (rideData.is_completed) {
@@ -63,6 +76,17 @@ export default function RideDetailsPage() {
       .eq('id', id)
       .single()
     setRide(updated)
+
+    // Refresh passengers
+    const { data: passengersData } = await supabase
+      .from('ride_passengers')
+      .select(`
+        passenger_id,
+        users:passenger_id(id, name, email)
+      `)
+      .eq('ride_id', id)
+    
+    setPassengers(passengersData || [])
 
     // Refresh ratings if the ride is completed
     if (updated?.is_completed) {
@@ -135,12 +159,33 @@ export default function RideDetailsPage() {
         </a> ({ride.users?.email})
       </p>
 
-      {/* Note about ride management */}
-      {(isDriver || hasJoined) && (
-        <div className="bg-gray-50 p-3 rounded text-sm text-gray-600 border">
-          <p>⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-600 hover:underline">My Rides</a> page.</p>
-        </div>
-      )}
+      {/* Passengers Section */}
+      <div className="border-t pt-4 mt-4">
+        <h2 className="text-lg font-semibold mb-2">
+          🧍 Passengers ({passengers.length})
+        </h2>
+        
+        {passengers.length > 0 ? (
+          <ul className="space-y-2">
+            {passengers.map((passenger) => (
+              <li key={passenger.passenger_id} className="flex items-center">
+                <span className="mr-2">•</span>
+                <a 
+                  href={`/profile/${passenger.passenger_id}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {passenger.users?.name}
+                </a>
+                <span className="text-gray-500 text-sm ml-2">
+                  ({passenger.users?.email})
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500 italic">No passengers have joined this ride yet.</p>
+        )}
+      </div>
 
       {/* Join Ride */}
       {!isDriver && !hasJoined && ride.seats_left > 0 && !ride.is_completed && (
@@ -192,6 +237,13 @@ export default function RideDetailsPage() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+      
+      {/* Note about ride management */}
+      {(isDriver || hasJoined) && (
+        <div className="bg-gray-50 p-3 rounded text-sm text-gray-600 border mt-6">
+          <p>⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-600 hover:underline">My Rides</a> page.</p>
         </div>
       )}
     </div>
