@@ -150,6 +150,17 @@ export default function MyRidesPage() {
     }
   }
 
+  // Helper function to get category icon
+  const getCategoryIcon = (cat?: string) => {
+    switch(cat) {
+      case 'Airport': return '✈️';
+      case 'Outdoor Activity': return '🏔️';
+      case 'Event': return '🎵';
+      case 'Other':
+      default: return '🚗';
+    }
+  };
+
   if (loading) return <p className="text-center mt-10">Loading your rides...</p>
 
   return (
@@ -176,7 +187,14 @@ export default function MyRidesPage() {
                   className="p-4 border rounded hover:bg-blue-50 transition"
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
-                    <div className="font-medium">To {ride.destination}</div>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">To {ride.destination}</div>
+                      {ride.category && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                          {getCategoryIcon(ride.category)} {ride.category}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-600">
                       {new Date(ride.date).toLocaleString()}
                     </div>
@@ -218,7 +236,14 @@ export default function MyRidesPage() {
                   className="p-4 border rounded hover:bg-green-50 transition"
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
-                    <div className="font-medium">To {ride.destination}</div>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">To {ride.destination}</div>
+                      {ride.category && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                          {getCategoryIcon(ride.category)} {ride.category}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-600">
                       {new Date(ride.date).toLocaleString()}
                     </div>
@@ -252,7 +277,14 @@ export default function MyRidesPage() {
                   className="p-4 border rounded hover:bg-yellow-50 transition"
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
-                    <div className="font-medium">To {ride.destination}</div>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">To {ride.destination}</div>
+                      {ride.category && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                          {getCategoryIcon(ride.category)} {ride.category}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-600">
                       {new Date(ride.date).toLocaleString()}
                     </div>
@@ -294,11 +326,18 @@ export default function MyRidesPage() {
                   className="p-4 border rounded hover:bg-gray-100 transition"
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
-                    <div className="font-medium">To {ride.destination}</div>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">To {ride.destination}</div>
+                      {ride.category && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                          {getCategoryIcon(ride.category)} {ride.category}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-600">
                       {new Date(ride.date).toLocaleString()}
                     </div>
-                    <div className="text-sm text-green-600 mt-1">
+                    <div className="text-green-600 text-sm font-medium mt-1">
                       ✅ Completed
                     </div>
                   </div>

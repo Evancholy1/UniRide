@@ -114,6 +114,17 @@ export default function RideDetailsPage() {
     }
   }
 
+  // Helper function to get category icon
+  const getCategoryIcon = (cat?: string) => {
+    switch(cat) {
+      case 'Airport': return '✈️';
+      case 'Outdoor Activity': return '🏔️';
+      case 'Event': return '🎵';
+      case 'Other':
+      default: return '🚗';
+    }
+  };
+
   if (!ride || !user) return <p>Loading...</p>
 
   const isDriver = ride.driver_id === user.id
@@ -121,6 +132,13 @@ export default function RideDetailsPage() {
   return (
     <div className="p-6 max-w-xl mx-auto bg-white rounded shadow space-y-4">
       <h1 className="text-2xl font-bold">🚗 Ride to {ride.destination}</h1>
+      
+      {ride.category && (
+        <div className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+          {getCategoryIcon(ride.category)} {ride.category}
+        </div>
+      )}
+      
       <p><strong>Date:</strong> {new Date(ride.date).toLocaleString()}</p>
       <p><strong>Seats Left:</strong> {ride.seats_left}</p>
       <p><strong>Description:</strong> {ride.ride_description}</p>
