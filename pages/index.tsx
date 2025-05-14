@@ -31,6 +31,7 @@ export async function getServerSideProps() {
       *,
       driver:driver_id(name)
     `)
+    .gte('seats_left', 1)
     .order('date', { ascending: true })
 
   if (error) {
@@ -112,17 +113,31 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
         <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
         <h2 className="text-4xl text-red-500 font-bold">Tailwind is working!</h2>
 
-        <div className="text-right text-sm">
-          <p>Welcome, {userEmail}</p>
-          <button
-            onClick={handleCreateRide}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 flex items-center"
-          >
-            <span className="mr-2">+</span> Create Ride
-          </button>
-          <button onClick={handleLogout} className="text-red-600 underline hover:text-red-800 mt-1">
-            Log out
-          </button>
+        <div className="text-right text-sm space-y-1">
+  <p>Welcome, {userEmail}</p>
+  
+    <div className="flex gap-2 flex-wrap justify-end">
+        <button
+        onClick={() => router.push('/my_rides')}
+        className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+        >
+        My Rides
+        </button>
+
+        <button
+        onClick={handleCreateRide}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
+        >
+        + Create Ride
+        </button>
+
+        <button
+        onClick={handleLogout}
+        className="text-red-600 underline hover:text-red-800"
+        >
+        Log out
+        </button>
+            </div>
         </div>
       </div>
 
@@ -145,7 +160,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
           <p className="text-gray-600">No rides available at the moment.</p>
           <button
             onClick={handleCreateRide}
-            className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 flex items-center"
           >
             Be the first to create a ride!
           </button>
