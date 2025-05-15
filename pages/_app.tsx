@@ -56,6 +56,11 @@ export default function App({ Component, pageProps }: AppProps) {
       href: userId ? `/profile/${userId}` : "/profile/me",
       icon: <IconUser className="h-5 w-5 text-white" />,
     },
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: <IconSettings className="h-5 w-5 text-white" />,
+    },
   ]
 
   const LogoutButton = () => {
