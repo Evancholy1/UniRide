@@ -15,6 +15,8 @@ export default function RegisterPage() {
     e.preventDefault()
     setError('')
 
+    const isEduEmail = email.trim().toLowerCase().endsWith('.edu')
+
     // Step 1: Sign up with Supabase Auth
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -28,24 +30,21 @@ export default function RegisterPage() {
 
     const user = signUpData.user
 
-    // Step 2: Insert into custom users table (must match foreign key constraint)
+    // Step 2: Insert into custom users table
     if (user) {
       const { error: insertError } = await supabase.from('users').insert({
         id: user.id,
         email: user.email,
         name: name,
-        verified: false,
+        verified: isEduEmail, // ✅ use existing 'verified' column
       })
 
       if (insertError) {
         console.error('Insert error:', insertError)
-        console.log('Tried inserting user with ID:', user.id)
-
         setError('Account created, but failed to save profile info.')
         return
       }
 
-      // Optional: wait to ensure session sync before redirect
       await new Promise(res => setTimeout(res, 500))
       router.push('/')
     }
@@ -56,9 +55,9 @@ export default function RegisterPage() {
       <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-96 border border-gray-700">
         <h2 className="text-2xl font-bold mb-6 text-white text-center">Create Account</h2>
         <p className="text-gray-400 text-center mb-6">Join UniRide to start sharing rides</p>
-        
+
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        
+
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName" className="text-gray-200">Full Name</Label>
@@ -71,7 +70,7 @@ export default function RegisterPage() {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="email" className="text-gray-200">Email Address</Label>
             <Input
@@ -83,7 +82,7 @@ export default function RegisterPage() {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="password" className="text-gray-200">Password</Label>
             <Input
@@ -95,7 +94,7 @@ export default function RegisterPage() {
               required
             />
           </div>
-          
+
           <button 
             type="submit" 
             className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors duration-200 mt-6"
@@ -103,7 +102,7 @@ export default function RegisterPage() {
             Sign Up
           </button>
         </form>
-        
+
         <p className="text-sm mt-6 text-center text-gray-300">
           Already have an account?{' '}
           <a href="/login" className="text-blue-500 hover:text-blue-400 transition-colors duration-200">
