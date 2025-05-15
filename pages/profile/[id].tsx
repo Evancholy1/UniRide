@@ -185,17 +185,28 @@ export default function ProfilePage() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        {profile?.avatar_url ? (
-          <img
-            src={profile.avatar_url}
-            alt="Profile"
-            className="w-12 h-12 rounded-full object-cover border-2 border-gray-700"
-          />
-        ) : (
-          <span className="text-4xl">👤</span>
-        )}
-        <h1 className="text-2xl font-bold text-white">{user.name || 'User'}</h1>
-      </div>
+  {profile?.avatar_url ? (
+    <img
+      src={profile.avatar_url}
+      alt="Profile"
+      className="w-12 h-12 rounded-full object-cover border-2 border-gray-700"
+    />
+  ) : (
+    <span className="text-4xl">👤</span>
+  )}
+    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+    {user.name || 'User'}
+    {user.verified && (
+      <span
+        title="Verified Student"
+        className="text-green-400 text-sm font-medium px-2 py-1 bg-green-900 rounded-full"
+      >
+        ✅ Verified Student
+      </span>
+          )}
+      </h1>
+        </div>
+
 
       {/* User Info */}
       <div className="bg-gray-800 rounded shadow p-6 text-white">
