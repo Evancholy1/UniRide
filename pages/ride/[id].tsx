@@ -193,6 +193,12 @@ export default function RideDetailsPage() {
 
   return (
     <div className="p-6 max-w-xl mx-auto bg-gray-800 rounded shadow space-y-4">
+      {/* Centered warning at the top */}
+      <div className="flex justify-center mb-4">
+        <div className="bg-gray-700 p-3 rounded text-sm text-gray-200 border border-gray-600 text-center max-w-lg">
+          ⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-400 hover:underline">My Rides</a> page.
+        </div>
+      </div>
       <h1 className="text-2xl font-bold">🚗 Ride to {ride.destination}</h1>
       
       {ride.category && (
@@ -257,55 +263,28 @@ export default function RideDetailsPage() {
         <p className="text-green-600 font-medium">✅ You've joined this ride</p>
       )}
 
-
-      {/* Rating form */}
-      {!isDriver && ride.is_completed && !submittedRating && (
-        <form onSubmit={handleRatingSubmit} className="mt-6 space-y-4 border-t pt-4">
-          <h3 className="text-lg font-semibold">Rate this ride</h3>
-          {ratingError && <p className="text-red-500 text-sm">{ratingError}</p>}
-
-          <label className="block">
-            <span className="text-sm text-white">Rating (1–5)</span>
-            <select
-              value={score}
-              onChange={(e) => setScore(Number(e.target.value))}
-              className="mt-1 block w-full border border-gray-600 bg-gray-700 text-white rounded p-2"
-            >
-              {[5, 4, 3, 2, 1].map((n) => (
-                <option key={n} value={n}>{n}</option>
+      {/* Show all reviews for a completed ride */}
+      {ride.is_completed && (
+        <div className="mt-8 border-t pt-6">
+          <h3 className="text-lg font-semibold mb-4">Reviews for this ride</h3>
+          {rideRatings.length > 0 ? (
+            <ul className="space-y-4">
+              {rideRatings.map((rating) => (
+                <li key={rating.id} className="bg-gray-700 rounded p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-white">{rating.users?.name || 'User'}</span>
+                    <span className="text-yellow-400">{rating.score} ⭐</span>
+                    <span className="text-xs text-gray-400 ml-2">{new Date(rating.created_at).toLocaleString()}</span>
+                  </div>
+                  {rating.comment && (
+                    <div className="text-gray-200 italic">"{rating.comment}"</div>
+                  )}
+                </li>
               ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-sm text-white">Comment (optional)</span>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="mt-1 block w-full border border-gray-600 bg-gray-700 text-white rounded p-2"
-              placeholder="Any feedback?"
-            />
-          </label>
-
-          <button className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-            Submit Rating
-          </button>
-        </form>
-
-      )}
-
-      {/* Already rated message */}
-      {!isDriver && ride.is_completed && submittedRating && (
-        <div className="mt-6 space-y-4 border-t pt-4">
-          <h3 className="text-lg font-semibold">Rating Submitted</h3>
-          <p className="text-green-400">✅ You have already rated this ride. Thank you for your feedback!</p>
-        </div>
-      )}
-      
-      {/* Note about ride management */}
-      {(isDriver || hasJoined) && (
-        <div className="bg-gray-700 p-3 rounded text-sm text-gray-200 border border-gray-600 mt-6">
-          <p>⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-400 hover:underline">My Rides</a> page.</p>
+            </ul>
+          ) : (
+            <p className="text-gray-400 italic">No reviews for this ride yet.</p>
+          )}
         </div>
       )}
     </div>

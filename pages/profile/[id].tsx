@@ -8,44 +8,80 @@ export default function ProfilePage() {
 
   const [user, setUser] = useState<any>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [completedRides, setCompletedRides] = useState<any[]>([])
   const [userReviews, setUserReviews] = useState<any[]>([])
   const [averageRating, setAverageRating] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
+  const [authUserId, setAuthUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!id) return
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setAuthUserId(session?.user?.id || null)
+    })
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
+  }, [])
 
+  useEffect(() => {
+    if (!id && !authUserId) return;
+    setLoading(true);
     const fetchProfileData = async () => {
-      // Get current logged in user
-      const { data: sessionData } = await supabase.auth.getUser()
-      setCurrentUser(sessionData.user)
-
-      // Get profile user from users table
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (userError || !userData) {
-        console.error('Error fetching user:', userError)
-        router.push('/')
-        return
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
       }
-      setUser(userData)
-
-      // Get profile from profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id)
-        .single()
-      if (!profileError && profileData) {
-        setProfile(profileData)
+      const sessionUser = session.user;
+      setCurrentUser(sessionUser);
+      let profileId = id;
+      if (id === 'me') {
+        profileId = sessionUser.id;
+      }
+      // USERS TABLE
+      let userData;
+      let userError;
+      {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', profileId)
+          .single();
+        userData = data;
+        userError = error;
+      }
+      if (!userData) {
+        const { data: newUser } = await supabase
+          .from('users')
+          .insert([{ id: profileId, email: sessionUser.email, name: sessionUser.user_metadata?.full_name || '' }])
+          .select()
+          .single();
+        setUser(newUser);
       } else {
-        setProfile(null)
+        setUser(userData);
+      }
+      // PROFILES TABLE
+      let profileData;
+      let profileError;
+      {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', profileId)
+          .single();
+        profileData = data;
+        profileError = error;
+      }
+      if (!profileData) {
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .insert([{ id: profileId, email: sessionUser.email, name: sessionUser.user_metadata?.full_name || '' }])
+          .select()
+          .single();
+        setProfile(newProfile);
+      } else {
+        setProfile(profileData);
       }
 
       try {
@@ -53,7 +89,7 @@ export default function ProfilePage() {
         const { data: driverRides, error: driverError } = await supabase
           .from('rides')
           .select('*')
-          .eq('driver_id', id)
+          .eq('driver_id', profileId)
           .eq('is_completed', true)
 
         if (driverError) {
@@ -92,7 +128,7 @@ export default function ProfilePage() {
         const { data: myReviews, error: reviewsError } = await supabase
           .from('ratings')
           .select('*')
-          .eq('rater_id', id)
+          .eq('rater_id', profileId)
           .order('created_at', { ascending: false })
 
         if (reviewsError) {
@@ -124,7 +160,7 @@ export default function ProfilePage() {
         const { data: allRatings, error: ratingsError } = await supabase
           .from('ratings')
           .select('score')
-          .eq('driver_id', id)
+          .eq('driver_id', profileId)
 
         if (ratingsError) {
           console.error('Error fetching ratings:', ratingsError)
@@ -139,9 +175,8 @@ export default function ProfilePage() {
         setLoading(false)
       }
     }
-
     fetchProfileData()
-  }, [id])
+  }, [id, authUserId])
 
   if (loading) return <p className="text-center mt-10">Loading profile...</p>
 

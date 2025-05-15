@@ -27,10 +27,19 @@ export default function App({ Component, pageProps }: AppProps) {
       } = await supabase.auth.getUser()
       if (user) {
         setUserId(user.id)
+      } else {
+        setUserId(null)
       }
     }
     getUser()
     setHasMounted(true)
+    // Listen for auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUserId(session?.user?.id || null)
+    })
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
   }, [])
 
   if (!hasMounted) return null // or a loading spinner
@@ -102,7 +111,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
       <main className={`flex-1 p-6 transition-all duration-300 ${!hideSidebar ? (open ? 'md:ml-[300px]' : 'md:ml-[60px]') : ''}`}>
         <div className="max-w-3xl mx-auto">
-          <Component {...pageProps} />
+          <Component key={userId} {...pageProps} />
         </div>
       </main>
     </div>

@@ -199,6 +199,14 @@ export default function MyRidesPage() {
                     {new Date(ride.date).toLocaleString()}
                     </div>
                   </div>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => handleComplete(ride.id)}
+                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                    >
+                      ✅ Mark as Completed
+                    </button>
+                  </div>
                 </li>
               ))
             ) : (
