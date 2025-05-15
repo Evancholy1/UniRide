@@ -127,10 +127,10 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
   
     <div className="flex gap-2 flex-wrap justify-end">
         <button
-          onClick={() => router.push('/my_rides')}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+        onClick={() => router.push('/my_rides')}
+        className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
         >
-          My Rides
+        My Rides
         </button>
 
         <button
@@ -141,17 +141,17 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
         </button>
 
         <button
-          onClick={handleCreateRide}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
+        onClick={handleCreateRide}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
         >
-          + Create Ride
+        + Create Ride
         </button>
 
         <button
-          onClick={handleLogout}
+        onClick={handleLogout}
           className="bg-red-600 hover:bg-red-700 text-white font-medium py-1.5 px-4 rounded shadow-sm transition"
         >
-          Log out
+        Log out
         </button>
             </div>
         </div>

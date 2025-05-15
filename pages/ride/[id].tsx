@@ -43,7 +43,7 @@ export default function RideDetailsPage() {
         .maybeSingle()
   
       if (joined) setHasJoined(true)
-
+  
       // Fetch all passengers for this ride
       const { data: passengersData } = await supabase
         .from('ride_passengers')
@@ -67,7 +67,7 @@ export default function RideDetailsPage() {
           .order('created_at', { ascending: false })
 
         setRideRatings(ratings || [])
-        
+  
         // Check if the current user has already submitted a rating
         const userRating = ratings?.find((rating: any) => rating.rater_id === currentUser.id)
         if (userRating) {
@@ -130,16 +130,16 @@ export default function RideDetailsPage() {
     // 2. Update ride with new seats count
     const newSeats = ride.seats_left - 1
   
-    const { error: updateError } = await supabase
-      .from('rides')
-      .update({ seats_left: newSeats })
-      .eq('id', ride.id)
-
-    if (updateError) {
-      console.error('Update error:', updateError)
-    } else {
-      await refreshRide()
-      setHasJoined(true)
+      const { error: updateError } = await supabase
+        .from('rides')
+        .update({ seats_left: newSeats })
+        .eq('id', ride.id)
+  
+      if (updateError) {
+        console.error('Update error:', updateError)
+      } else {
+        await refreshRide()
+        setHasJoined(true)
       
       // If no seats left, redirect to home page
       if (newSeats <= 0) {
@@ -155,19 +155,19 @@ export default function RideDetailsPage() {
     if (!user || !ride) return
 
     try {
-      const { error } = await supabase.from('ratings').insert({
-        ride_id: ride.id,
-        driver_id: ride.driver_id,
-        rater_id: user.id,
-        score,
-        comment,
-      })
+    const { error } = await supabase.from('ratings').insert({
+      ride_id: ride.id,
+      driver_id: ride.driver_id,
+      rater_id: user.id,
+      score,
+      comment,
+    })
 
-      if (error) {
+    if (error) {
         console.error('Rating error:', error)
         setRatingError(error.message)
-      } else {
-        setSubmittedRating(true)
+    } else {
+      setSubmittedRating(true)
         await refreshRide() // Refresh ride data to show the new rating
       }
     } catch (err: any) {
@@ -240,7 +240,7 @@ export default function RideDetailsPage() {
           </ul>
         ) : (
           <p className="text-gray-500 italic">No passengers have joined this ride yet.</p>
-        )}
+      )}
       </div>
 
       {/* Join Ride */}
@@ -293,7 +293,7 @@ export default function RideDetailsPage() {
         </form>
 
       )}
-      
+
       {/* Already rated message */}
       {!isDriver && ride.is_completed && submittedRating && (
         <div className="mt-6 space-y-4 border-t pt-4">
