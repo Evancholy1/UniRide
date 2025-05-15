@@ -21,6 +21,15 @@ type DashboardCardItem = {
 // Union type for max flexibility:
 type HoverCardItem = RideCardItem | DashboardCardItem
 
+// Type guard functions
+function isRideCardItem(item: HoverCardItem): item is RideCardItem {
+  return 'destination' in item && 'date' in item && 'driver' in item && 'seats_left' in item;
+}
+
+function isDashboardCardItem(item: HoverCardItem): item is DashboardCardItem {
+  return 'title' in item && 'description' in item;
+}
+
 // Helper function to get category icon
 const getCategoryIcon = (cat?: string) => {
   switch(cat) {
@@ -68,18 +77,20 @@ export const HoverEffect = ({
             )}
           </AnimatePresence>
           <Card 
-            hasNotes={'notes' in item && item.notes && item.notes.length > 0}
+            hasNotes={isRideCardItem(item) && Boolean(item.notes && item.notes.length > 0)}
           >
             <div className="flex justify-between items-center mb-3">
-              <CardTitle>{'title' in item ? item.title : item.destination}</CardTitle>
-              {'category' in item && item.category && (
+              <CardTitle>
+                {isDashboardCardItem(item) ? item.title : item.destination}
+              </CardTitle>
+              {isRideCardItem(item) && item.category && (
                 <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                   {getCategoryIcon(item.category)} {item.category}
                 </span>
               )}
             </div>
             <CardDescription>
-              {'description' in item ? item.description : (
+              {isDashboardCardItem(item) ? item.description : (
                 <>
                   <div className="text-center">📅 {new Date(item.date).toLocaleString()}</div>
                   <div className="text-center">👤 Driver: {item.driver}</div>
@@ -131,7 +142,7 @@ export const CardTitle = ({
   children: React.ReactNode
 }) => (
   <h4 className={cn("text-xl font-bold text-white truncate", className)}>
-  {children}
+    {children}
   </h4>
 )
 

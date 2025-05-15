@@ -24,7 +24,7 @@ type RideCardProps = {
       <a href={`/ride/${id}`} className="block p-4 border rounded shadow hover:bg-gray-50">
         <h3 className="text-xl font-semibold">{destination}</h3>
         <div className="flex justify-between items-center mb-1">
-          <p className="text-sm">📅 {date}</p>
+        <p className="text-sm">📅 {date}</p>
           {category && (
             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
               {getCategoryIcon(category)} {category}

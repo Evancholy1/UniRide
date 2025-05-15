@@ -121,12 +121,38 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
     <div className="max-w-3xl mx-auto mt-8 space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
-        
-        <div className="fixed top-7 right-2 text-sm text-right space-y-1 z-10">
+
+        <div className="text-right text-sm space-y-1">
   <p>Welcome, {userEmail}</p>
   
     <div className="flex gap-2 flex-wrap justify-end">
-      
+        <button
+        onClick={() => router.push('/my_rides')}
+        className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+        >
+        My Rides
+        </button>
+
+        <button
+          onClick={() => userId && router.push(`/profile/${userId}`)}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
+        >
+          Profile
+        </button>
+
+        <button
+        onClick={handleCreateRide}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded shadow-sm transition"
+        >
+        + Create Ride
+        </button>
+
+        <button
+        onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 text-white font-medium py-1.5 px-4 rounded shadow-sm transition"
+        >
+        Log out
+        </button>
             </div>
         </div>
       </div>
@@ -134,11 +160,11 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
       {rides.length > 0 ? (
         <div className="w-full mx-auto">
           <HoverEffect
-              items={rides.map(ride => ({
-                ...ride,
-                link: `/ride/${ride.id}` // dynamic route
-              }))}
-            />
+            items={rides.map(ride => ({
+              ...ride,
+              link: `/ride/${ride.id}` // dynamic route
+            }))}
+          />
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700">

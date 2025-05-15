@@ -20,23 +20,23 @@ export default function MyRidesPage() {
 
   const router = useRouter()
 
-  const fetchRides = async () => {
-    const { data: session } = await supabase.auth.getUser()
-    const currentUser = session.user
-    setUser(currentUser)
+    const fetchRides = async () => {
+      const { data: session } = await supabase.auth.getUser()
+      const currentUser = session.user
+      setUser(currentUser)
 
-    if (!currentUser) {
-      router.push('/login')
-      return
-    }
+      if (!currentUser) {
+        router.push('/login')
+        return
+      }
 
     // Get all driving rides
-    const { data: drivingRides } = await supabase
-      .from('rides')
-      .select('*')
-      .eq('driver_id', currentUser.id)
+      const { data: drivingRides } = await supabase
+        .from('rides')
+        .select('*')
+        .eq('driver_id', currentUser.id)
       .eq('is_completed', false)
-    setDriving(drivingRides || [])
+      setDriving(drivingRides || [])
 
     // Get completed rides you're driving
     const { data: completedDrivingRides } = await supabase
@@ -46,22 +46,22 @@ export default function MyRidesPage() {
       .eq('is_completed', true)
 
     // Get passenger links
-    const { data: links } = await supabase
-      .from('ride_passengers')
-      .select('ride_id')
-      .eq('passenger_id', currentUser.id)
+      const { data: links } = await supabase
+        .from('ride_passengers')
+        .select('ride_id')
+        .eq('passenger_id', currentUser.id)
 
-    const rideIds = links?.map(r => r.ride_id) || []
+      const rideIds = links?.map(r => r.ride_id) || []
 
     // Get all joined rides (not completed)
-    if (rideIds.length > 0) {
-      const { data: joinedRides } = await supabase
-        .from('rides')
-        .select('*')
-        .in('id', rideIds)
+      if (rideIds.length > 0) {
+        const { data: joinedRides } = await supabase
+          .from('rides')
+          .select('*')
+          .in('id', rideIds)
         .eq('is_completed', false)
 
-      setJoined(joinedRides || [])
+        setJoined(joinedRides || [])
 
       // Get completed rides that need rating
       const { data: completedJoinedRides } = await supabase
@@ -96,10 +96,10 @@ export default function MyRidesPage() {
       }
     } else {
       setCompletedRides(completedDrivingRides || [])
-    }
+      }
 
-    setLoading(false)
-  }
+      setLoading(false)
+    }
 
   useEffect(() => {
     fetchRides()
@@ -188,7 +188,7 @@ export default function MyRidesPage() {
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
                     <div className="flex justify-between items-center">
-                      <div className="font-medium">To {ride.destination}</div>
+                  <div className="font-medium">To {ride.destination}</div>
                       {ride.category && (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
                           {getCategoryIcon(ride.category)} {ride.category}
@@ -196,7 +196,7 @@ export default function MyRidesPage() {
                       )}
                     </div>
                     <div className="text-sm text-gray-300">
-                      {new Date(ride.date).toLocaleString()}
+                    {new Date(ride.date).toLocaleString()}
                     </div>
                   </div>
                 </li>
@@ -319,7 +319,7 @@ export default function MyRidesPage() {
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
                     <div className="flex justify-between items-center">
-                      <div className="font-medium">To {ride.destination}</div>
+                  <div className="font-medium">To {ride.destination}</div>
                       {ride.category && (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
                           {getCategoryIcon(ride.category)} {ride.category}
@@ -327,7 +327,7 @@ export default function MyRidesPage() {
                       )}
                     </div>
                     <div className="text-sm text-gray-300">
-                      {new Date(ride.date).toLocaleString()}
+                    {new Date(ride.date).toLocaleString()}
                     </div>
                     <div className="text-green-600 text-sm font-medium mt-1">
                       ✅ Completed
