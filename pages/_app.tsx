@@ -54,12 +54,7 @@ export default function App({ Component, pageProps }: AppProps) {
     {
       label: "Profile",
       href: userId ? `/profile/${userId}` : "/profile/me",
-      icon: <IconUser className="h-5 w-5 text-red" />,
-    },
-    {
-      label: "Dashboard",
-      href: "/dashboard",
-      icon: <IconSettings className="h-5 w-5 text-white" />,
+      icon: <IconUser className="h-5 w-5 text-white" />,
     },
   ]
 
