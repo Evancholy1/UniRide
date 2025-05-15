@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const [userReviews, setUserReviews] = useState<any[]>([])
   const [averageRating, setAverageRating] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<any>(null)
 
   useEffect(() => {
     if (!id) return
@@ -21,7 +22,7 @@ export default function ProfilePage() {
       const { data: sessionData } = await supabase.auth.getUser()
       setCurrentUser(sessionData.user)
 
-      // Get profile user
+      // Get profile user from users table
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -33,8 +34,19 @@ export default function ProfilePage() {
         router.push('/')
         return
       }
-
       setUser(userData)
+
+      // Get profile from profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single()
+      if (!profileError && profileData) {
+        setProfile(profileData)
+      } else {
+        setProfile(null)
+      }
 
       try {
         // Get user's completed rides as a driver - use simpler query first
@@ -137,16 +149,17 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-start">
-        <h1 className="text-2xl font-bold mb-4">👤 {user.name}'s Profile</h1>
-        {currentUser && currentUser.id === id && (
-          <button
-            className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
-            onClick={() => router.push('/')}
-          >
-            Back to Homepage
-          </button>
+      <div className="flex items-center gap-4 mb-6">
+        {profile?.avatar_url ? (
+          <img
+            src={profile.avatar_url}
+            alt="Profile"
+            className="w-12 h-12 rounded-full object-cover border-2 border-gray-700"
+          />
+        ) : (
+          <span className="text-4xl">👤</span>
         )}
+        <h1 className="text-2xl font-bold text-white">{user.name || 'User'}</h1>
       </div>
 
       {/* User Info */}
