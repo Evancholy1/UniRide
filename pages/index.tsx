@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import { HoverEffect } from '@/components/UI/hoverCardGrid'
 import { Input } from '@/components/UI/input'
+import Image from 'next/image'
 
 interface _RideFromDB {
   id: string
@@ -139,7 +140,16 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
   return (
     <div className="max-w-3xl mx-auto mt-8 space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
+        <div className="flex items-center gap-4">
+          <Image
+            src="https://i.postimg.cc/502Yr3Fz/raw.png"
+            alt="UniRide Logo"
+            width={50}
+            height={50}
+            className="rounded-lg"
+          />
+          <h1 className="text-3xl font-bold">Find a Ride</h1>
+        </div>
   
         <div className="text-right text-sm space-y-1">
           <p className="text-gray-300">Welcome, {userEmail}</p>

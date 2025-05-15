@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -54,6 +55,15 @@ export default function RegisterPage() {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-900">
       <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-96 border border-gray-700">
+        <div className="flex justify-center mb-6">
+          <Image
+            src="https://i.postimg.cc/502Yr3Fz/raw.png"
+            alt="UniRide Logo"
+            width={150}
+            height={150}
+            className="rounded-lg"
+          />
+        </div>
         <h2 className="text-2xl font-bold mb-6 text-white text-center">Create Account</h2>
         <p className="text-gray-400 text-center mb-6">Join UniRide to start sharing rides</p>
 

@@ -15,6 +15,10 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Configure allowed image domains
+  images: {
+    domains: ['i.postimg.cc'],
+  },
 }
 
 module.exports = nextConfig 
