@@ -3,9 +3,8 @@ import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import { HoverEffect } from '@/components/UI/hoverCardGrid'
 import { Input } from '@/components/UI/input'
-import RideCard from '@/components/RideCard'
 
-interface RideFromDB {
+interface _RideFromDB {
   id: string
   destination: string
   date: string

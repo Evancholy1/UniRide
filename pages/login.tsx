@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/router'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -70,11 +71,8 @@ export default function LoginPage() {
           </button>
         </form>
         
-        <p className="text-sm mt-6 text-center text-gray-300">
-          Don't have an account?{' '}
-          <a href="/register" className="text-blue-500 hover:text-blue-400 transition-colors duration-200">
-            Sign up
-          </a>
+        <p className="text-center mt-4 text-sm text-gray-400">
+          Don&apos;t have an account? <Link href="/register" className="text-blue-500 hover:underline">Sign up</Link>
         </p>
       </div>
     </div>

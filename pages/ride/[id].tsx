@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import Link from 'next/link'
 
 export default function RideDetailsPage() {
   const router = useRouter()
@@ -196,7 +197,7 @@ export default function RideDetailsPage() {
       {/* Centered warning at the top */}
       <div className="flex justify-center mb-4">
         <div className="bg-gray-700 p-3 rounded text-sm text-gray-200 border border-gray-600 text-center max-w-lg">
-          ⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-400 hover:underline">My Rides</a> page.
+          ⚠️ To manage this ride (mark as complete or rate), please visit the <Link href="/my_rides" className="text-blue-400 hover:underline">My Rides</Link> page.
         </div>
       </div>
       <h1 className="text-2xl font-bold">🚗 Ride to {ride.destination}</h1>
@@ -277,7 +278,7 @@ export default function RideDetailsPage() {
                     <span className="text-xs text-gray-400 ml-2">{new Date(rating.created_at).toLocaleString()}</span>
                   </div>
                   {rating.comment && (
-                    <div className="text-gray-200 italic">"{rating.comment}"</div>
+                    <div className="text-gray-200 italic">&quot;{rating.comment}&quot;</div>
                   )}
                 </li>
               ))}

@@ -97,7 +97,7 @@ export const HoverEffect = ({
                     <div className="text-center">🚗 {item.seats_left} seat(s) left</div>
                     {item.notes && (
                       <div className="text-center mt-4 italic text-sm border-t border-gray-700 pt-3">
-                        "{item.notes}"
+                        &quot;{item.notes}&quot;
                       </div>
                     )}
                   </>
