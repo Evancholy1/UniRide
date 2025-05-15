@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import { HoverEffect } from '@/components/UI/hoverCardGrid'
+import { Input } from '@/components/UI/input'
 import RideCard from '@/components/RideCard'
 
 interface RideFromDB {
@@ -58,6 +59,8 @@ export async function getServerSideProps() {
 
 export default function HomePage({ rides: initialRides }: { rides: TransformedRide[] }) {
   const [rides, setRides] = useState<TransformedRide[]>(initialRides)
+  const [filteredRides, setFilteredRides] = useState<TransformedRide[]>(initialRides)
+  const [searchQuery, setSearchQuery] = useState('')
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -106,6 +109,21 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
     checkUserAndLoad()
   }, [])
 
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredRides(rides)
+      return
+    }
+
+    const query = searchQuery.toLowerCase()
+    const filtered = rides.filter(ride => 
+      ride.destination.toLowerCase().includes(query) ||
+      ride.driver.toLowerCase().includes(query) ||
+      ride.category.toLowerCase().includes(query)
+    )
+    setFilteredRides(filtered)
+  }, [searchQuery, rides])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
@@ -127,18 +145,30 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
         </div>
       </div>
 
-      {rides.length > 0 ? (
+      <div className="mb-6">
+        <Input
+          type="text"
+          placeholder="Search by destination, driver, or category..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+        />
+      </div>
+
+      {filteredRides.length > 0 ? (
         <div className="w-full mx-auto">
           <HoverEffect
-            items={rides.map(ride => ({
+            items={filteredRides.map(ride => ({
               ...ride,
-              link: `/ride/${ride.id}` // dynamic route
+              link: `/ride/${ride.id}`
             }))}
           />
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700">
-          <p className="text-gray-300">No rides available at the moment.</p>
+          <p className="text-gray-300">
+            {searchQuery ? 'No rides match your search.' : 'No rides available at the moment.'}
+          </p>
           <button
             onClick={handleCreateRide}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 mt-4 mx-auto"
