@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/router'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -61,9 +61,9 @@ export default function RegisterPage() {
         
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="fullName" className="text-gray-200">Full Name</Label>
             <Input
-              id="name"
+              id="fullName"
               type="text"
               placeholder="Enter your full name"
               value={name}
@@ -73,7 +73,7 @@ export default function RegisterPage() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email" className="text-gray-200">Email Address</Label>
             <Input
               id="email"
               type="email"
@@ -85,7 +85,7 @@ export default function RegisterPage() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-gray-200">Password</Label>
             <Input
               id="password"
               type="password"

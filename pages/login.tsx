@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/router'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -39,7 +39,7 @@ export default function LoginPage() {
         
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email" className="text-gray-200">Email Address</Label>
             <Input
               id="email"
               type="email"
@@ -51,7 +51,7 @@ export default function LoginPage() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-gray-200">Password</Label>
             <Input
               id="password"
               type="password"
