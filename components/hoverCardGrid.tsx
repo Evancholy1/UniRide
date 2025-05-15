@@ -10,6 +10,7 @@ type RideCardItem = {
   link: string
   category?: string
   notes?: string
+  verified?: boolean
 }
 
 type DashboardCardItem = {

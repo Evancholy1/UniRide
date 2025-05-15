@@ -26,6 +26,7 @@ interface TransformedRide {
   driver: string
   notes: string
   category: string
+  verified?: boolean
 }
 
 export async function getServerSideProps() {
@@ -33,7 +34,7 @@ export async function getServerSideProps() {
     .from('rides')
     .select(`
       *,
-      driver:driver_id(name)
+      driver:driver_id(name, verified)
     `)
     .gte('seats_left', 1)
     .eq('is_completed', false)
@@ -50,6 +51,7 @@ export async function getServerSideProps() {
     date: ride.date,
     seats_left: ride.seats_left,
     driver: ride.driver?.name || 'Unknown',
+    verified: ride.driver?.verified || false,
     notes: ride.ride_description,
     category: ride.category || 'Other'
   }))
@@ -82,7 +84,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
         .from('rides')
         .select(`
           *,
-          driver:driver_id(name)
+          driver:driver_id(name, verified)
         `)
         .gte('seats_left', 1)
         .eq('is_completed', false)
@@ -159,9 +161,16 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
         {filteredRides.length > 0 ? (
           <div className="w-full mx-auto">
             <HoverEffect
-              items={filteredRides.map(ride => ({
-                ...ride,
-                link: `/ride/${ride.id}`
+              items={filteredRides.map((ride) => ({
+                id: ride.id,
+                destination: ride.destination,
+                date: ride.date,
+                driver: ride.driver,           // ✅ already a string
+                seats_left: ride.seats_left,
+                notes: ride.notes,
+                category: ride.category,
+                verified: ride.verified,       // ✅ this is the actual field
+                link: `/ride/${ride.id}`,
               }))}
             />
           </div>
