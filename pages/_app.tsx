@@ -76,7 +76,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }
   
   return (
-    <div className="flex min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white">
       {!hideSidebar && (
         <Sidebar open={open} setOpen={setOpen}>
           <SidebarBody className="justify-between gap-10">
@@ -95,8 +95,10 @@ export default function App({ Component, pageProps }: AppProps) {
         </Sidebar>
       )}
 
-      <main className={`flex-1 p-6 ${!hideSidebar ? 'md:ml-[300px]' : ''}`}>
-        <Component {...pageProps} />
+      <main className={`flex-1 p-6 transition-all duration-300 ${!hideSidebar ? (open ? 'md:ml-[300px]' : 'md:ml-[60px]') : ''}`}>
+        <div className="max-w-3xl mx-auto">
+          <Component {...pageProps} />
+        </div>
       </main>
     </div>
   )
