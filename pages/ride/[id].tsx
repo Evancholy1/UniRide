@@ -16,6 +16,7 @@ export default function RideDetailsPage() {
   const [comment, setComment] = useState('')
   const [ratingError, setRatingError] = useState('')
   const [submittedRating, setSubmittedRating] = useState(false)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     if (!id) return // ⛔ skip if id isn't ready yet
@@ -188,12 +189,30 @@ export default function RideDetailsPage() {
     }
   };
 
+  // Message handlers
+  const handleMessageDriver = () => {
+    setMessage('Message to driver sent!');
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleMessagePassenger = (passengerName: string) => {
+    setMessage(`Message to ${passengerName} sent!`);
+    setTimeout(() => setMessage(''), 3000);
+  };
+
   if (!ride || !user) return <p>Loading...</p>
 
   const isDriver = ride.driver_id === user.id
 
   return (
     <div className="p-6 max-w-xl mx-auto bg-gray-800 rounded shadow space-y-4">
+      {/* Message notification */}
+      {message && (
+        <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg">
+          {message}
+        </div>
+      )}
+      
       {/* Centered warning at the top */}
       <div className="flex justify-center mb-4">
         <div className="bg-gray-700 p-3 rounded text-sm text-gray-200 border border-gray-600 text-center max-w-lg">
@@ -220,6 +239,16 @@ export default function RideDetailsPage() {
         >
           {ride.users?.name}
         </a> ({ride.users?.email})
+        
+        {/* Message Driver button (only visible to passengers who have joined) */}
+        {hasJoined && !isDriver && (
+          <button
+            onClick={handleMessageDriver}
+            className="ml-4 bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
+          >
+            ✉️ Message Driver
+          </button>
+        )}
       </p>
 
       {/* Passengers Section */}
@@ -242,6 +271,16 @@ export default function RideDetailsPage() {
                 <span className="text-gray-500 text-sm ml-2">
                   ({passenger.users?.email})
                 </span>
+                
+                {/* Message Passenger button (only visible to driver) */}
+                {isDriver && (
+                  <button
+                    onClick={() => handleMessagePassenger(passenger.users?.name)}
+                    className="ml-4 bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
+                  >
+                    ✉️ Message Passenger
+                  </button>
+                )}
               </li>
             ))}
           </ul>
