@@ -9,8 +9,8 @@
 }
 
 body {
-  background-color: rgb(17, 24, 39); /* bg-gray-900 */
-  color: white;
+  background-color: rgb(11, 9, 36); /* bg-gray-900 */
+  color: rgb(198, 198, 198);
 }
 
 /* Global form input styles */
@@ -39,4 +39,13 @@ button {
 button:hover {
   background-color: rgb(75, 85, 99); /* hover:bg-gray-600 */
 }
+  
+
+
+  .grid-autofit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(331px, 1fr));
+    gap: 1.5rem;
+    justify-content: center;
+  }
   

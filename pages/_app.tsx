@@ -76,7 +76,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }
   
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-green">
       {!hideSidebar && (
         <Sidebar open={open} setOpen={setOpen}>
           <SidebarBody className="justify-between gap-10">

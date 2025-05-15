@@ -139,12 +139,12 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
     <div className="max-w-3xl mx-auto mt-8 space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
-
+  
         <div className="text-right text-sm space-y-1">
           <p className="text-gray-300">Welcome, {userEmail}</p>
         </div>
       </div>
-
+  
       <div className="mb-6">
         <Input
           type="text"
@@ -154,29 +154,31 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
           className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400"
         />
       </div>
-
-      {filteredRides.length > 0 ? (
-        <div className="w-full mx-auto">
-          <HoverEffect
-            items={filteredRides.map(ride => ({
-              ...ride,
-              link: `/ride/${ride.id}`
-            }))}
-          />
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700">
-          <p className="text-gray-300">
-            {searchQuery ? 'No rides match your search.' : 'No rides available at the moment.'}
-          </p>
-          <button
-            onClick={handleCreateRide}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 mt-4 mx-auto"
-          >
-            Be the first to create a ride!
-          </button>
-        </div>
-      )}
+  
+      <div className="bg-gray-800/30 p-6 rounded-xl shadow-lg border border-gray-700">
+        {filteredRides.length > 0 ? (
+          <div className="w-full mx-auto">
+            <HoverEffect
+              items={filteredRides.map(ride => ({
+                ...ride,
+                link: `/ride/${ride.id}`
+              }))}
+            />
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-300">
+              {searchQuery ? 'No rides match your search.' : 'No rides available at the moment.'}
+            </p>
+            <button
+              onClick={handleCreateRide}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 mt-4"
+            >
+              Be the first to create a ride!
+            </button>
+          </div>
+        )}
+      </div>
     </div>
-  )
+  )  
 }

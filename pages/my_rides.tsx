@@ -165,7 +165,7 @@ export default function MyRidesPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-4">🚘 My Rides</h1>
+      <h1 className="text-2xl font-bold mb-4"> My Rides</h1>
 
       {/* Driving section */}
       <div className="bg-gray-800 p-4 rounded shadow">
@@ -173,7 +173,7 @@ export default function MyRidesPage() {
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setShowDriving(!showDriving)}
         >
-          <h2 className="text-xl font-semibold">🧑‍✈️ Rides You're Driving</h2>
+          <h2 className="text-xl font-semibold"> Driving</h2>
           <span className="text-blue-600 text-sm">
             {showDriving ? 'Hide' : 'Show'}
           </span>
@@ -214,7 +214,7 @@ export default function MyRidesPage() {
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setShowJoined(!showJoined)}
         >
-          <h2 className="text-xl font-semibold">🧍 Rides You've Joined</h2>
+          <h2 className="text-xl font-semibold"> Joined Rides</h2>
           <span className="text-blue-600 text-sm">
             {showJoined ? 'Hide' : 'Show'}
           </span>
