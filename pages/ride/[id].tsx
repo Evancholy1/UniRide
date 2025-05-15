@@ -150,6 +150,37 @@ export default function RideDetailsPage() {
     }
   }
 
+  const handleLeave = async () => {
+    if (!user || !ride) return
+
+    // 1. Remove from passengers
+    const { error: leaveError } = await supabase
+      .from('ride_passengers')
+      .delete()
+      .eq('ride_id', ride.id)
+      .eq('passenger_id', user.id)
+
+    if (leaveError) {
+      console.error('Leave error:', leaveError)
+      return
+    }
+
+    // 2. Update ride with new seats count
+    const newSeats = ride.seats_left + 1
+
+    const { error: updateError } = await supabase
+      .from('rides')
+      .update({ seats_left: newSeats })
+      .eq('id', ride.id)
+
+    if (updateError) {
+      console.error('Update error:', updateError)
+    } else {
+      await refreshRide()
+      setHasJoined(false)
+    }
+  }
+
   const handleRatingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setRatingError('')
@@ -300,7 +331,15 @@ export default function RideDetailsPage() {
       )}
 
       {hasJoined && !isDriver && (
-        <p className="text-green-600 font-medium">✅ You've joined this ride</p>
+        <div className="space-y-2">
+          <p className="text-green-600 font-medium">✅ You've joined this ride</p>
+          <button
+            onClick={handleLeave}
+            className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+          >
+            🚪 Leave Ride
+          </button>
+        </div>
       )}
 
       {/* Show all reviews for a completed ride */}
