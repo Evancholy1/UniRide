@@ -121,7 +121,6 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
     <div className="max-w-xl mx-auto mt-8 space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
-        <h2 className="text-4xl text-red-500 font-bold">Tailwind is working!</h2>
 
         <div className="text-right text-sm space-y-1">
   <p>Welcome, {userEmail}</p>

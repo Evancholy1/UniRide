@@ -11,6 +11,10 @@ export default function RideDetailsPage() {
   const [hasJoined, setHasJoined] = useState(false)
   const [rideRatings, setRideRatings] = useState<any[]>([])
   const [passengers, setPassengers] = useState<any[]>([])
+  const [score, setScore] = useState(5)
+  const [comment, setComment] = useState('')
+  const [ratingError, setRatingError] = useState('')
+  const [submittedRating, setSubmittedRating] = useState(false)
 
   useEffect(() => {
     if (!id) return // ⛔ skip if id isn't ready yet
@@ -63,6 +67,12 @@ export default function RideDetailsPage() {
           .order('created_at', { ascending: false })
 
         setRideRatings(ratings || [])
+        
+        // Check if the current user has already submitted a rating
+        const userRating = ratings?.find((rating: any) => rating.rater_id === currentUser.id)
+        if (userRating) {
+          setSubmittedRating(true)
+        }
       }
     }
   
@@ -135,6 +145,34 @@ export default function RideDetailsPage() {
       if (newSeats <= 0) {
         router.push('/')
       }
+    }
+  }
+
+  const handleRatingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRatingError('')
+
+    if (!user || !ride) return
+
+    try {
+      const { error } = await supabase.from('ratings').insert({
+        ride_id: ride.id,
+        driver_id: ride.driver_id,
+        rater_id: user.id,
+        score,
+        comment,
+      })
+
+      if (error) {
+        console.error('Rating error:', error)
+        setRatingError(error.message)
+      } else {
+        setSubmittedRating(true)
+        await refreshRide() // Refresh ride data to show the new rating
+      }
+    } catch (err: any) {
+      console.error('Error submitting rating:', err)
+      setRatingError(err.message)
     }
   }
 
@@ -231,7 +269,7 @@ export default function RideDetailsPage() {
             <select
               value={score}
               onChange={(e) => setScore(Number(e.target.value))}
-              className="mt-1 block w-full border rounded p-2"
+              className="mt-1 block w-full border border-gray-600 bg-gray-700 text-white rounded p-2"
             >
               {[5, 4, 3, 2, 1].map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -244,7 +282,7 @@ export default function RideDetailsPage() {
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="mt-1 block w-full border rounded p-2"
+              className="mt-1 block w-full border border-gray-600 bg-gray-700 text-white rounded p-2"
               placeholder="Any feedback?"
             />
           </label>
@@ -256,10 +294,18 @@ export default function RideDetailsPage() {
 
       )}
       
+      {/* Already rated message */}
+      {!isDriver && ride.is_completed && submittedRating && (
+        <div className="mt-6 space-y-4 border-t pt-4">
+          <h3 className="text-lg font-semibold">Rating Submitted</h3>
+          <p className="text-green-400">✅ You have already rated this ride. Thank you for your feedback!</p>
+        </div>
+      )}
+      
       {/* Note about ride management */}
       {(isDriver || hasJoined) && (
-        <div className="bg-gray-50 p-3 rounded text-sm text-gray-600 border mt-6">
-          <p>⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-600 hover:underline">My Rides</a> page.</p>
+        <div className="bg-gray-700 p-3 rounded text-sm text-gray-200 border border-gray-600 mt-6">
+          <p>⚠️ To manage this ride (mark as complete or rate), please visit the <a href="/my_rides" className="text-blue-400 hover:underline">My Rides</a> page.</p>
         </div>
       )}
     </div>
