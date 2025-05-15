@@ -1,4 +1,4 @@
-import { HoverEffect } from '@/components/hoverCardGrid'
+import { HoverEffect } from '@/components/UI/hoverCardGrid'
 
 const items = [
   {
