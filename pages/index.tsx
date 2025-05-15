@@ -118,7 +118,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
   if (loading) return <p className="text-center mt-10">Loading...</p>
 
   return (
-    <div className="max-w-xl mx-auto mt-8 space-y-4">
+    <div className="max-w-3xl mx-auto mt-8 space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">🎿 Find a Ride</h1>
 
@@ -149,7 +149,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
 
         <button
           onClick={handleLogout}
-          className="text-red-600 underline hover:text-red-800"
+          className="bg-red-600 hover:bg-red-700 text-white font-medium py-1.5 px-4 rounded shadow-sm transition"
         >
           Log out
         </button>
@@ -158,21 +158,20 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
       </div>
 
       {rides.length > 0 ? (
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full mx-auto">
           <HoverEffect
               items={rides.map(ride => ({
                 ...ride,
                 link: `/ride/${ride.id}` // dynamic route
               }))}
-
             />
         </div>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">No rides available at the moment.</p>
+        <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700">
+          <p className="text-gray-300">No rides available at the moment.</p>
           <button
             onClick={handleCreateRide}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 flex items-center"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 mt-4 mx-auto"
           >
             Be the first to create a ride!
           </button>

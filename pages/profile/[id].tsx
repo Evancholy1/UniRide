@@ -141,7 +141,7 @@ export default function ProfilePage() {
         <h1 className="text-2xl font-bold mb-4">👤 {user.name}'s Profile</h1>
         {currentUser && currentUser.id === id && (
           <button
-            className="text-blue-600 text-sm"
+            className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1.5 px-4 rounded border shadow-sm transition"
             onClick={() => router.push('/')}
           >
             Back to Homepage
@@ -150,7 +150,7 @@ export default function ProfilePage() {
       </div>
 
       {/* User Info */}
-      <div className="bg-white rounded shadow p-6">
+      <div className="bg-gray-800 rounded shadow p-6 text-white">
         <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
         <p><strong>Name:</strong> {user.name}</p>
         <p><strong>Email:</strong> {user.email}</p>
@@ -161,26 +161,26 @@ export default function ProfilePage() {
               {averageRating} ⭐
             </span>
           ) : (
-            <span className="text-gray-500 italic">No ratings yet</span>
+            <span className="text-gray-400 italic">No ratings yet</span>
           )}
         </div>
       </div>
 
       {/* Completed Rides */}
-      <div className="bg-gray-50 p-4 rounded shadow">
+      <div className="bg-gray-800 p-4 rounded shadow text-white">
         <h2 className="text-xl font-semibold mb-3">Completed Rides</h2>
         {completedRides.length > 0 ? (
           <ul className="space-y-3">
             {completedRides.map((ride) => (
               <li 
                 key={ride.id}
-                className="p-4 border rounded bg-white hover:bg-gray-50 transition cursor-pointer"
+                className="p-4 border border-gray-700 rounded bg-gray-800 hover:bg-gray-700 transition cursor-pointer"
                 onClick={() => router.push(`/ride/${ride.id}`)}
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-medium">To {ride.destination}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       {new Date(ride.date).toLocaleString()}
                     </div>
                     <div className="text-green-600 text-sm font-medium mt-1">
@@ -198,7 +198,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="text-sm mt-1">
-                  <span className="text-gray-500">
+                  <span className="text-gray-400">
                     {ride.ratings?.length || 0} {ride.ratings?.length === 1 ? 'review' : 'reviews'}
                   </span>
                 </div>
@@ -206,19 +206,19 @@ export default function ProfilePage() {
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500 italic">No completed rides yet.</p>
+          <p className="text-gray-400 italic">No completed rides yet.</p>
         )}
       </div>
 
       {/* Reviews Made */}
-      <div className="bg-gray-50 p-4 rounded shadow">
+      <div className="bg-gray-800 p-4 rounded shadow text-white">
         <h2 className="text-xl font-semibold mb-3">Reviews on Other Rides</h2>
         {userReviews.length > 0 ? (
           <ul className="space-y-3">
             {userReviews.map((review) => (
               <li
                 key={review.id}
-                className="p-4 border rounded bg-white hover:bg-gray-50 transition cursor-pointer"
+                className="p-4 border border-gray-700 rounded bg-gray-800 hover:bg-gray-700 transition cursor-pointer"
                 onClick={() => router.push(`/ride/${review.ride_id}`)}
               >
                 <div className="flex justify-between">
@@ -226,10 +226,10 @@ export default function ProfilePage() {
                     <div className="font-medium">
                       Ride to {review.rides.destination}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       Driver: {review.rides.users.name}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       {new Date(review.rides.date).toLocaleString()}
                     </div>
                   </div>
@@ -238,18 +238,18 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {review.comment && (
-                  <div className="mt-2 italic text-gray-700 border-t pt-2">
+                  <div className="mt-2 italic text-gray-300 border-t border-gray-700 pt-2">
                     "{review.comment}"
                   </div>
                 )}
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-gray-400 mt-1">
                   Posted on {new Date(review.created_at).toLocaleString()}
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500 italic">No reviews made yet.</p>
+          <p className="text-gray-400 italic">No reviews made yet.</p>
         )}
       </div>
     </div>

@@ -8,6 +8,8 @@ type RideCardItem = {
   driver: string
   seats_left: number 
   link: string
+  category?: string
+  notes?: string
 }
 
 type DashboardCardItem = {
@@ -18,6 +20,17 @@ type DashboardCardItem = {
 
 // Union type for max flexibility:
 type HoverCardItem = RideCardItem | DashboardCardItem
+
+// Helper function to get category icon
+const getCategoryIcon = (cat?: string) => {
+  switch(cat) {
+    case 'Airport': return '✈️';
+    case 'Outdoor Activity': return '🏔️';
+    case 'Event': return '🎵';
+    case 'Other':
+    default: return '🚗';
+  }
+};
 
 export const HoverEffect = ({
   items,
@@ -31,7 +44,7 @@ export const HoverEffect = ({
   return (
     <div
       className={cn(
-         "flex flex-col items-center space-y-8 p-6 max-w-2xl mx-auto", // ✅ centered & padded
+        "grid grid-cols-1 md:grid-cols-2 gap-6 p-4 mx-auto", // Responsive grid layout
         className
       )}
     >
@@ -39,7 +52,7 @@ export const HoverEffect = ({
         <a
           href={item.link}
           key={item.link}
-          className="relative group block p-2 h-full w-full"
+          className="relative group block p-2 w-full"
           onMouseEnter={() => setHoveredIndex(idx)}
           onMouseLeave={() => setHoveredIndex(null)}
         >
@@ -54,17 +67,31 @@ export const HoverEffect = ({
               />
             )}
           </AnimatePresence>
-          <Card>
-          <CardTitle>{'title' in item ? item.title : item.destination}</CardTitle>
-          <CardDescription>
-            {'description' in item ? item.description : (
-              <>
-                  <div>Date: {new Date(item.date).toLocaleString()}</div>
-                  <div>Driver: {item.driver}</div>
-                  <div>Seats Left: {item.seats_left}</div>
-              </>
-            )}
-          </CardDescription>
+          <Card 
+            hasNotes={'notes' in item && item.notes && item.notes.length > 0}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <CardTitle>{'title' in item ? item.title : item.destination}</CardTitle>
+              {'category' in item && item.category && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  {getCategoryIcon(item.category)} {item.category}
+                </span>
+              )}
+            </div>
+            <CardDescription>
+              {'description' in item ? item.description : (
+                <>
+                  <div className="text-center">📅 {new Date(item.date).toLocaleString()}</div>
+                  <div className="text-center">👤 Driver: {item.driver}</div>
+                  <div className="text-center">🚗 {item.seats_left} seat(s) left</div>
+                  {item.notes && (
+                    <div className="text-center mt-4 italic text-sm border-t border-gray-700 pt-3">
+                      "{item.notes}"
+                    </div>
+                  )}
+                </>
+              )}
+            </CardDescription>
           </Card>
         </a>
       ))}
@@ -75,19 +102,22 @@ export const HoverEffect = ({
 export const Card = ({
   className,
   children,
+  hasNotes = false,
 }: {
   className?: string
   children: React.ReactNode
+  hasNotes?: boolean
 }) => {
   return (
     <div
       className={cn(
-        "rounded-xl w-full h-[400px] p-6 bg-[#1e1e1e] text-white border border-gray-700 shadow-md transition-all duration-200",
+        "rounded-xl w-full p-4 bg-[#1e1e1e] text-white border border-gray-700 shadow-md transition-all duration-200 hover:shadow-lg hover:border-gray-500",
+        hasNotes ? "min-h-[250px]" : "min-h-[200px]",
         className
       )}
     >
       <div className="relative z-50">
-        <div className="p-4">{children}</div>
+        <div className="p-2">{children}</div>
       </div>
     </div>
   )
@@ -100,7 +130,7 @@ export const CardTitle = ({
   className?: string
   children: React.ReactNode
 }) => (
-  <h4 className={cn("text-xl font-bold text-white mb-2", className)}>
+  <h4 className={cn("text-xl font-bold text-white truncate", className)}>
   {children}
   </h4>
 )
@@ -114,7 +144,7 @@ export const CardDescription = ({
 }) => (
   <p
     className={cn(
-      "text-base text-gray-300 leading-relaxed space-y-1",
+      "text-base text-gray-300 leading-relaxed space-y-3",
       className
     )}
   >

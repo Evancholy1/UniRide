@@ -186,16 +186,23 @@ export default function MyRidesPage() {
                   key={ride.id}
                    className="p-4 border border-gray-700 rounded bg-gray-800 hover:bg-gray-700 text-white transition"
                 >
-
-                  <div className="font-medium">To {ride.destination}</div>
-                  <div className="text-sm text-gray-300">
-                    {new Date(ride.date).toLocaleString()}
-
+                  <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">To {ride.destination}</div>
+                      {ride.category && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                          {getCategoryIcon(ride.category)} {ride.category}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-300">
+                      {new Date(ride.date).toLocaleString()}
+                    </div>
                   </div>
                 </li>
               ))
             ) : (
-              <p className="text-sm text-gray-500 mt-2">No active rides posted.</p>
+              <p className="text-sm text-gray-400 mt-2">No active rides posted.</p>
             )}
           </ul>
         )}
@@ -229,21 +236,21 @@ export default function MyRidesPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       {new Date(ride.date).toLocaleString()}
                     </div>
                   </div>
                 </li>
               ))
             ) : (
-              <p className="text-sm text-gray-500 mt-2">No active rides joined.</p>
+              <p className="text-sm text-gray-400 mt-2">No active rides joined.</p>
             )}
           </ul>
         )}
       </div>
 
       {/* Rides to Rate section */}
-      <div className="bg-gray-50 p-4 rounded shadow">
+      <div className="bg-gray-800 p-4 rounded shadow">
         <div
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setShowRidesToRate(!showRidesToRate)}
@@ -259,7 +266,7 @@ export default function MyRidesPage() {
               ridesToRate.map((ride) => (
                 <li
                   key={ride.id}
-                  className="p-4 border rounded hover:bg-yellow-50 transition"
+                  className="p-4 border border-gray-700 rounded bg-gray-800 hover:bg-gray-700 text-white transition"
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
                     <div className="flex justify-between items-center">
@@ -270,7 +277,7 @@ export default function MyRidesPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       {new Date(ride.date).toLocaleString()}
                     </div>
                   </div>
@@ -285,14 +292,14 @@ export default function MyRidesPage() {
                 </li>
               ))
             ) : (
-              <p className="text-sm text-gray-500 mt-2">No rides to rate.</p>
+              <p className="text-sm text-gray-400 mt-2">No rides to rate.</p>
             )}
           </ul>
         )}
       </div>
 
       {/* Completed Rides section */}
-      <div className="bg-gray-50 p-4 rounded shadow">
+      <div className="bg-gray-800 p-4 rounded shadow">
         <div
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setShowCompleted(!showCompleted)}
@@ -308,7 +315,7 @@ export default function MyRidesPage() {
               completedRides.map((ride) => (
                 <li
                   key={ride.id}
-                  className="p-4 border rounded hover:bg-gray-100 transition"
+                  className="p-4 border border-gray-700 rounded bg-gray-800 hover:bg-gray-700 text-white transition"
                 >
                   <div className="cursor-pointer" onClick={() => router.push(`/ride/${ride.id}`)}>
                     <div className="flex justify-between items-center">
@@ -319,7 +326,7 @@ export default function MyRidesPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       {new Date(ride.date).toLocaleString()}
                     </div>
                     <div className="text-green-600 text-sm font-medium mt-1">
@@ -329,7 +336,7 @@ export default function MyRidesPage() {
                 </li>
               ))
             ) : (
-              <p className="text-sm text-gray-500 mt-2">No completed rides.</p>
+              <p className="text-sm text-gray-400 mt-2">No completed rides.</p>
             )}
           </ul>
         )}
@@ -338,18 +345,18 @@ export default function MyRidesPage() {
       {/* Rating Modal */}
       {currentRideToRate && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Rate your ride to {currentRideToRate.destination}</h3>
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700">
+            <h3 className="text-lg font-bold mb-4 text-white">Rate your ride to {currentRideToRate.destination}</h3>
             
             {ratingError && <p className="text-red-500 text-sm mb-3">{ratingError}</p>}
             
             <form onSubmit={handleRatingSubmit} className="space-y-4">
               <label className="block">
-                <span className="text-sm text-gray-700">Rating (1–5)</span>
+                <span className="text-sm text-gray-300">Rating (1–5)</span>
                 <select
                   value={score}
                   onChange={(e) => setScore(Number(e.target.value))}
-                  className="mt-1 block w-full border rounded p-2"
+                  className="mt-1 block w-full border border-gray-600 bg-gray-700 text-white rounded p-2"
                 >
                   {[5, 4, 3, 2, 1].map((n) => (
                     <option key={n} value={n}>{n}</option>
@@ -358,11 +365,11 @@ export default function MyRidesPage() {
               </label>
 
               <label className="block">
-                <span className="text-sm text-gray-700">Comment (optional)</span>
+                <span className="text-sm text-gray-300">Comment (optional)</span>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="mt-1 block w-full border rounded p-2"
+                  className="mt-1 block w-full border border-gray-600 bg-gray-700 text-white rounded p-2"
                   placeholder="Any feedback?"
                 />
               </label>
@@ -371,7 +378,7 @@ export default function MyRidesPage() {
                 <button 
                   type="button"
                   onClick={closeRatingForm}
-                  className="bg-gray-300 text-gray-800 py-2 px-4 rounded hover:bg-gray-400"
+                  className="bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-500"
                 >
                   Cancel
                 </button>
