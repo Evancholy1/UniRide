@@ -83,7 +83,7 @@ export const HoverEffect = ({
             <CardDescription>
               {'description' in item ? item.description : (
                 <>
-                  <div className="text-center">📍 From: {item.starting_location}</div>
+                  <div className="text-center">📍 Start: {item.starting_location}</div>
                   <div className="text-center">📅 {new Date(item.date).toLocaleString()}</div>
                   <div className="text-center">👤 Driver: {item.driver}</div>
                   <div className="text-center">🚗 {item.seats_left} seat(s) left</div>
