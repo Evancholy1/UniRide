@@ -1,127 +1,154 @@
+'use client';
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
-import { useStyleRegistry } from 'styled-jsx'
-import { start } from 'repl'
+import { AutocompleteInput } from '@/components/AutocompleteInput'
 
 export default function CreateRidePage() {
-  const [destination, setDestination] = useState('')
-  const [starting_location, setStartingLocation] = useState('')
+  const [title, setTitle] = useState('')                   // maps to `destination`
+  const [startingLocation, setStartingLocation] = useState('')
+  const [destinationAddress, setDestinationAddress] = useState('')
   const [date, setDate] = useState('')
+  const [category, setCategory] = useState('Other')
   const [seats, setSeats] = useState(1)
   const [notes, setNotes] = useState('')
-  const [category, setCategory] = useState('Other')
   const [error, setError] = useState('')
   const router = useRouter()
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        router.push('/login')
-      }
-    }
-
-    checkSession()
-  }, [])
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) router.push('/login')
+    })
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
     const { data: { user }, error: userError } = await supabase.auth.getUser()
-
     if (!user || userError) {
-      setError('User not found. Please log in.')
+      setError('You must be logged in to post a ride.')
       return
     }
 
-    console.log('Attempting ride insert with driver ID:', user.id)
-
-
-    const { error: insertError } = await supabase.from('rides').insert({
-      destination,
-      starting_location,
-      date,
-      seats_left: seats,
-      ride_description: notes,
-      driver_id: user.id, // ✅ foreign key to users table
-      category, // Add the category field
-    })
+    const { error: insertError } = await supabase
+      .from('rides')
+      .insert({
+        destination: title,               // destination column
+        starting_location: startingLocation,
+        destination_address: destinationAddress,
+        date,
+        category,
+        seats_left: seats,
+        ride_description: notes,
+        driver_id: user.id,
+      })
 
     if (insertError) {
       console.error(insertError)
-      setError('Failed to create ride. Check your fields and try again.')
+      setError('Failed to create ride—please try again.')
     } else {
-      router.push('/') // redirect to homepage
+      router.push('/')
     }
   }
 
   return (
     <div className="max-w-xl mx-auto mt-12 bg-gray-800 p-6 rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">🚗 Post a New Ride</h1>
+      <h1 className="text-2xl font-bold mb-6 text-white">🚗 Post a New Ride</h1>
 
-      {error && <p className="text-red-500 mb-3">{error}</p>}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 1) Title (goes to rides.destination) */}
+        <div>
+          <label className="block text-gray-200 mb-1">Title</label>
+          <input
+            type="text"
+            className="w-full border border-gray-700 bg-gray-900 text-white p-2 rounded"
+            placeholder="Title of your ride."
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            required
+          />
+        </div>
 
-      <input
-          type="text"
-          placeholder="Starting Point (e.g., Boulder)"
-          className="w-full border p-2 rounded"
-          value={starting_location}
-          onChange={e => setStartingLocation(e.target.value)}
-          required
-        />
+        {/* 2) Starting Location */}
+        <div>
+          <label className="block text-gray-200 mb-1">Starting Location</label>
+          <AutocompleteInput
+            placeholder="Type your starting address..."
+            value={startingLocation}
+            onChange={setStartingLocation}
+          />
+        </div>
 
-        <input
-          type="text"
-          placeholder="Destination (e.g., Eldora)"
-          className="w-full border p-2 rounded"
-          value={destination}
-          onChange={e => setDestination(e.target.value)}
-          required
-        />
+        {/* 3) Destination Location */}
+        <div>
+          <label className="block text-gray-200 mb-1">Destination Location</label>
+          <AutocompleteInput
+            placeholder="Type your destination address..."
+            value={destinationAddress}
+            onChange={setDestinationAddress}
+          />
+        </div>
 
-        <input
-          type="datetime-local"
-          className="w-full border p-2 rounded"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          required
-        />
+        {/* 4) Date & Time */}
+        <div>
+          <label className="block text-gray-200 mb-1">Date & Time</label>
+          <input
+            type="datetime-local"
+            className="w-full border border-gray-700 bg-gray-900 text-white p-2 rounded"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+            required
+          />
+        </div>
 
-        <select
-          className="w-full border p-2 rounded"
-          value={category}
-          onChange={e => setCategory(e.target.value)}
-          required
+        {/* 5) Category */}
+        <div>
+          <label className="block text-gray-200 mb-1">Category</label>
+          <select
+            className="w-full border border-gray-700 bg-gray-900 text-white p-2 rounded"
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            required
+          >
+            <option value="Airport">Airport</option>
+            <option value="Outdoor Activity">Outdoor Activity</option>
+            <option value="Event">Event</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        {/* 6) Seats Available */}
+        <div>
+          <label className="block text-gray-200 mb-1">Seats Available</label>
+          <input
+            type="number"
+            min={1}
+            className="w-full border border-gray-700 bg-gray-900 text-white p-2 rounded"
+            value={seats}
+            onChange={e => setSeats(Number(e.target.value))}
+            required
+          />
+        </div>
+
+        {/* 7) Notes */}
+        <div>
+          <label className="block text-gray-200 mb-1">Notes (optional)</label>
+          <textarea
+            className="w-full border border-gray-700 bg-gray-900 text-white p-2 rounded"
+            placeholder="Any details (gear, meetup spot, etc.)"
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
         >
-          <option value="Airport">Airport</option>
-          <option value="Outdoor Activity">Outdoor Activity</option>
-          <option value="Event">Event</option>
-          <option value="Other">Other</option>
-        </select>
-
-        <input
-          type="number"
-          min={1}
-          placeholder="Seats available"
-          className="w-full border p-2 rounded"
-          value={seats}
-          onChange={e => setSeats(Number(e.target.value))}
-          required
-        />
-
-        <textarea
-          placeholder="Notes (gear, car type, etc.)"
-          className="w-full border p-2 rounded"
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-        />
-
-
-        <button type="submit" className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
           Create Ride
         </button>
       </form>

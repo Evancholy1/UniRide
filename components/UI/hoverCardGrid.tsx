@@ -103,7 +103,7 @@ export const HoverEffect = ({
               <CardDescription>
                 {isDashboardCardItem(item) ? item.description : (
                   <>
-                    <div className="text-center">📍 From: {item.starting_location}</div>
+                    <div className="text-center">📍 Starting: {item.starting_location}</div>
                     <div className="text-center">
                       📅 {new Date(item.date).toLocaleString()}
                     </div>
