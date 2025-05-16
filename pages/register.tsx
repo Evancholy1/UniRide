@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/router'
+import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
+import Link from 'next/link'
+import Image from 'next/image'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -12,6 +16,8 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    const isEduEmail = email.trim().toLowerCase().endsWith('.edu')
 
     // Step 1: Sign up with Supabase Auth
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -26,73 +32,92 @@ export default function RegisterPage() {
 
     const user = signUpData.user
 
-    // Step 2: Insert into custom users table (must match foreign key constraint)
+    // Step 2: Insert into custom users table
     if (user) {
       const { error: insertError } = await supabase.from('users').insert({
         id: user.id,
         email: user.email,
         name: name,
-        verified: false,
+        verified: isEduEmail, // ✅ use existing 'verified' column
       })
 
       if (insertError) {
         console.error('Insert error:', insertError)
-        console.log('Tried inserting user with ID:', user.id)
-
         setError('Account created, but failed to save profile info.')
         return
       }
 
-      // Optional: wait to ensure session sync before redirect
       await new Promise(res => setTimeout(res, 500))
       router.push('/')
     }
   }
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <form onSubmit={handleRegister} className="bg-white p-8 rounded shadow w-80">
-        <h2 className="text-2xl font-bold mb-4">Create Account</h2>
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+    <div className="flex justify-center items-center h-screen bg-gray-900">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-96 border border-gray-700">
+        <div className="flex justify-center mb-6">
+          <Image
+            src="https://i.postimg.cc/502Yr3Fz/raw.png"
+            alt="UniRide Logo"
+            width={150}
+            height={150}
+            className="rounded-lg"
+          />
+        </div>
+        <h2 className="text-2xl font-bold mb-6 text-white text-center">Create Account</h2>
+        <p className="text-gray-400 text-center mb-6">Join UniRide to start sharing rides</p>
 
-        <input
-          className="w-full border p-2 rounded mb-2"
-          type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          required
-        />
+        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
-        <input
-          className="w-full border p-2 rounded mb-2"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="fullName" className="text-gray-200">Full Name</Label>
+            <Input
+              id="fullName"
+              type="text"
+              placeholder="Enter your full name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              required
+            />
+          </div>
 
-        <input
-          className="w-full border p-2 rounded mb-4"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-gray-200">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">
-          Sign Up
-        </button>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-gray-200">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Create a password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        <p className="text-sm mt-4 text-center">
-          Already have an account?{' '}
-          <a href="/login" className="text-blue-600 underline">
-            Log in
-          </a>
+          <button 
+            type="submit" 
+            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors duration-200 mt-6"
+          >
+            Sign Up
+          </button>
+        </form>
+
+        <p className="text-center mt-4 text-sm text-gray-400">
+          Already have an account? <Link href="/login" className="text-blue-500 hover:underline">Sign in</Link>
         </p>
-      </form>
+      </div>
     </div>
   )
 }

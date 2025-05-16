@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/router'
+import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
+import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -28,33 +32,59 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow w-80">
-        <h2 className="text-2xl mb-4 font-bold">Login</h2>
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        <input
-          className="w-full border p-2 rounded mb-2"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        <input
-          className="w-full border p-2 rounded mb-4"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
-          Log In
-        </button>
-        <p className="text-sm mt-4 text-center">
-          Don’t have an account? <a href="/register" className="text-green-600 underline">Sign up</a>
+    <div className="flex justify-center items-center h-screen bg-gray-900">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-96 border border-gray-700">
+        <div className="flex justify-center mb-6">
+          <Image
+            src="https://i.postimg.cc/502Yr3Fz/raw.png"
+            alt="UniRide Logo"
+            width={150}
+            height={150}
+            className="rounded-lg"
+          />
+        </div>
+        <h2 className="text-2xl font-bold mb-6 text-white text-center">Welcome to UniRide</h2>
+        <p className="text-gray-400 text-center mb-6">Login to your account to continue</p>
+        
+        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+        
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-gray-200">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-gray-200">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 mt-6"
+          >
+            Log In
+          </button>
+        </form>
+        
+        <p className="text-center mt-4 text-sm text-gray-400">
+          Don&apos;t have an account? <Link href="/register" className="text-blue-500 hover:underline">Sign up</Link>
         </p>
-      </form>
+      </div>
     </div>
   )
 }

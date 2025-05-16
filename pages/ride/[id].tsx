@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import Link from 'next/link'
 
 export default function RideDetailsPage() {
   const router = useRouter()
@@ -9,11 +10,13 @@ export default function RideDetailsPage() {
   const [ride, setRide] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [hasJoined, setHasJoined] = useState(false)
-  const [submittedRating, setSubmittedRating] = useState(false)
-
+  const [rideRatings, setRideRatings] = useState<any[]>([])
+  const [passengers, setPassengers] = useState<any[]>([])
   const [score, setScore] = useState(5)
   const [comment, setComment] = useState('')
   const [ratingError, setRatingError] = useState('')
+  const [submittedRating, setSubmittedRating] = useState(false)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     if (!id) return // ⛔ skip if id isn't ready yet
@@ -33,6 +36,7 @@ export default function RideDetailsPage() {
   
       if (!currentUser || !rideData) return
   
+      // Check if current user has joined
       const { data: joined } = await supabase
         .from('ride_passengers')
         .select('*')
@@ -42,14 +46,36 @@ export default function RideDetailsPage() {
   
       if (joined) setHasJoined(true)
   
-      const { data: existingRating } = await supabase
-        .from('ratings')
-        .select('*')
+      // Fetch all passengers for this ride
+      const { data: passengersData } = await supabase
+        .from('ride_passengers')
+        .select(`
+          passenger_id,
+          users:passenger_id(id, name, email)
+        `)
         .eq('ride_id', id)
-        .eq('rater_id', currentUser.id)
-        .maybeSingle()
+      
+      setPassengers(passengersData || [])
+
+      // Fetch ratings for this ride if it's completed
+      if (rideData.is_completed) {
+        const { data: ratings } = await supabase
+          .from('ratings')
+          .select(`
+            *,
+            users:rater_id(id, name)
+          `)
+          .eq('ride_id', id)
+          .order('created_at', { ascending: false })
+
+        setRideRatings(ratings || [])
   
-      if (existingRating) setSubmittedRating(true)
+        // Check if the current user has already submitted a rating
+        const userRating = ratings?.find((rating: any) => rating.rater_id === currentUser.id)
+        if (userRating) {
+          setSubmittedRating(true)
+        }
+      }
     }
   
     fetchData()
@@ -62,15 +88,31 @@ export default function RideDetailsPage() {
       .eq('id', id)
       .single()
     setRide(updated)
-  }
 
-  const handleComplete = async () => {
-    const { error } = await supabase
-      .from('rides')
-      .update({ is_completed: true })
-      .eq('id', id)
+    // Refresh passengers
+    const { data: passengersData } = await supabase
+      .from('ride_passengers')
+      .select(`
+        passenger_id,
+        users:passenger_id(id, name, email)
+      `)
+      .eq('ride_id', id)
+    
+    setPassengers(passengersData || [])
 
-    if (!error) refreshRide()
+    // Refresh ratings if the ride is completed
+    if (updated?.is_completed) {
+      const { data: ratings } = await supabase
+        .from('ratings')
+        .select(`
+          *,
+          users:rater_id(id, name)
+        `)
+        .eq('ride_id', id)
+        .order('created_at', { ascending: false })
+
+      setRideRatings(ratings || [])
+    }
   }
 
   const handleJoin = async () => {
@@ -87,17 +129,9 @@ export default function RideDetailsPage() {
       return
     }
   
-    // 2. Update ride or delete if full
+    // 2. Update ride with new seats count
     const newSeats = ride.seats_left - 1
   
-    if (newSeats <= 0) {
-      const { error: deleteError } = await supabase.from('rides').delete().eq('id', ride.id)
-      if (deleteError) {
-        console.error('Delete error:', deleteError)
-      } else {
-        router.push('/') // ✅ redirect after deletion
-      }
-    } else {
       const { error: updateError } = await supabase
         .from('rides')
         .update({ seats_left: newSeats })
@@ -108,17 +142,52 @@ export default function RideDetailsPage() {
       } else {
         await refreshRide()
         setHasJoined(true)
+      
+      // If no seats left, redirect to home page
+      if (newSeats <= 0) {
+        router.push('/')
       }
     }
   }
-  
+
+  const handleLeave = async () => {
+    if (!user || !ride) return
+
+    // 1. Remove from passengers
+    const { error: leaveError } = await supabase
+      .from('ride_passengers')
+      .delete()
+      .eq('ride_id', ride.id)
+      .eq('passenger_id', user.id)
+
+    if (leaveError) {
+      console.error('Leave error:', leaveError)
+      return
+    }
+
+    // 2. Update ride with new seats count
+    const newSeats = ride.seats_left + 1
+
+    const { error: updateError } = await supabase
+      .from('rides')
+      .update({ seats_left: newSeats })
+      .eq('id', ride.id)
+
+    if (updateError) {
+      console.error('Update error:', updateError)
+    } else {
+      await refreshRide()
+      setHasJoined(false)
+    }
+  }
 
   const handleRatingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setRatingError('')
 
-    if (!user) return
+    if (!user || !ride) return
 
+    try {
     const { error } = await supabase.from('ratings').insert({
       ride_id: ride.id,
       driver_id: ride.driver_id,
@@ -128,12 +197,39 @@ export default function RideDetailsPage() {
     })
 
     if (error) {
-      console.error(error)
-      setRatingError('Error submitting rating.')
+        console.error('Rating error:', error)
+        setRatingError(error.message)
     } else {
       setSubmittedRating(true)
+        await refreshRide() // Refresh ride data to show the new rating
+      }
+    } catch (err: any) {
+      console.error('Error submitting rating:', err)
+      setRatingError(err.message)
     }
   }
+
+  // Helper function to get category icon
+  const getCategoryIcon = (cat?: string) => {
+    switch(cat) {
+      case 'Airport': return '✈️';
+      case 'Outdoor Activity': return '🏔️';
+      case 'Event': return '🎵';
+      case 'Other':
+      default: return '🚗';
+    }
+  };
+
+  // Message handlers
+  const handleMessageDriver = () => {
+    setMessage('Message to driver sent!');
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleMessagePassenger = (passengerName: string) => {
+    setMessage(`Message to ${passengerName} sent!`);
+    setTimeout(() => setMessage(''), 3000);
+  };
 
   if (!ride || !user) return <p>Loading...</p>
 
@@ -141,25 +237,91 @@ export default function RideDetailsPage() {
 
   return (
     <div className="p-6 max-w-xl mx-auto bg-gray-800 rounded shadow space-y-4">
+      {/* Message notification */}
+      {message && (
+        <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg">
+          {message}
+        </div>
+      )}
+      
+      {/* Centered warning at the top */}
+      <div className="flex justify-center mb-4">
+        <div className="bg-gray-700 p-3 rounded text-sm text-gray-200 border border-gray-600 text-center max-w-lg">
+          ⚠️ To manage this ride (mark as complete or rate), please visit the <Link href="/my_rides" className="text-blue-400 hover:underline">My Rides</Link> page.
+        </div>
+      </div>
       <h1 className="text-2xl font-bold">🚗 Ride to {ride.destination}</h1>
+      
+      {ride.category && (
+        <div className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+          {getCategoryIcon(ride.category)} {ride.category}
+        </div>
+      )}
+      
       <p><strong>Date:</strong> {new Date(ride.date).toLocaleString()}</p>
       <p><strong>Seats Left:</strong> {ride.seats_left}</p>
       <p><strong>Description:</strong> {ride.ride_description}</p>
       <p><strong>Completed:</strong> {ride.is_completed ? '✅ Yes' : '❌ No'}</p>
-      <p><strong>Driver:</strong> {ride.users?.name} ({ride.users?.email})</p>
-
-      {/* Mark complete */}
-      {isDriver && !ride.is_completed && (
-        <button
-          onClick={handleComplete}
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+      <p>
+        <strong>Driver:</strong> {' '}
+        <a 
+          className="text-blue-600 hover:underline"
+          href={`/profile/${ride.driver_id}`}
         >
-          ✅ Mark as Completed
-        </button>
+          {ride.users?.name}
+        </a> ({ride.users?.email})
+        
+        {/* Message Driver button (only visible to passengers who have joined) */}
+        {hasJoined && !isDriver && (
+          <button
+            onClick={handleMessageDriver}
+            className="ml-4 bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
+          >
+            ✉️ Message Driver
+          </button>
+        )}
+      </p>
+
+      {/* Passengers Section */}
+      <div className="border-t pt-4 mt-4">
+        <h2 className="text-lg font-semibold mb-2">
+          🧍 Passengers ({passengers.length})
+        </h2>
+        
+        {passengers.length > 0 ? (
+          <ul className="space-y-2">
+            {passengers.map((passenger) => (
+              <li key={passenger.passenger_id} className="flex items-center">
+                <span className="mr-2">•</span>
+                <a 
+                  href={`/profile/${passenger.passenger_id}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {passenger.users?.name}
+                </a>
+                <span className="text-gray-500 text-sm ml-2">
+                  ({passenger.users?.email})
+                </span>
+                
+                {/* Message Passenger button (only visible to driver) */}
+                {isDriver && (
+                  <button
+                    onClick={() => handleMessagePassenger(passenger.users?.name)}
+                    className="ml-4 bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
+                  >
+                    ✉️ Message Passenger
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500 italic">No passengers have joined this ride yet.</p>
       )}
+      </div>
 
       {/* Join Ride */}
-      {!isDriver && !hasJoined && ride.seats_left > 0 && (
+      {!isDriver && !hasJoined && ride.seats_left > 0 && !ride.is_completed && (
         <button
           onClick={handleJoin}
           className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
@@ -169,46 +331,40 @@ export default function RideDetailsPage() {
       )}
 
       {hasJoined && !isDriver && (
-        <p className="text-green-600 font-medium">✅ You’ve joined this ride</p>
-      )}
-
-      {/* Rating form */}
-      {!isDriver && ride.is_completed && !submittedRating && (
-        <form onSubmit={handleRatingSubmit} className="mt-6 space-y-4 border-t pt-4">
-          <h3 className="text-lg font-semibold">Rate this ride</h3>
-          {ratingError && <p className="text-red-500 text-sm">{ratingError}</p>}
-
-          <label className="block">
-            <span className="text-sm text-white">Rating (1–5)</span>
-            <select
-              value={score}
-              onChange={(e) => setScore(Number(e.target.value))}
-              className="mt-1 block w-full border rounded p-2"
-            >
-              {[5, 4, 3, 2, 1].map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-sm text-white">Comment (optional)</span>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="mt-1 block w-full border rounded p-2"
-              placeholder="Any feedback?"
-            />
-          </label>
-
-          <button className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-            Submit Rating
+        <div className="space-y-2">
+          <p className="text-green-600 font-medium">✅ You've joined this ride</p>
+          <button
+            onClick={handleLeave}
+            className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+          >
+            🚪 Leave Ride
           </button>
-        </form>
+        </div>
       )}
 
-      {submittedRating && !isDriver && (
-        <p className="mt-4 text-green-600 font-medium">✅ You rated this ride</p>
+      {/* Show all reviews for a completed ride */}
+      {ride.is_completed && (
+        <div className="mt-8 border-t pt-6">
+          <h3 className="text-lg font-semibold mb-4">Reviews for this ride</h3>
+          {rideRatings.length > 0 ? (
+            <ul className="space-y-4">
+              {rideRatings.map((rating) => (
+                <li key={rating.id} className="bg-gray-700 rounded p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-white">{rating.users?.name || 'User'}</span>
+                    <span className="text-yellow-400">{rating.score} ⭐</span>
+                    <span className="text-xs text-gray-400 ml-2">{new Date(rating.created_at).toLocaleString()}</span>
+                  </div>
+                  {rating.comment && (
+                    <div className="text-gray-200 italic">&quot;{rating.comment}&quot;</div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-400 italic">No reviews for this ride yet.</p>
+          )}
+        </div>
       )}
     </div>
   )
