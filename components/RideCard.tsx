@@ -1,5 +1,6 @@
 type RideCardProps = {
   id: string
+  starting_location: string
   destination: string
   date: string
   driver: string
@@ -12,6 +13,7 @@ type RideCardProps = {
 export default function RideCard({
   id,
   destination,
+  starting_location,
   date,
   driver,
   seats_left,
@@ -49,7 +51,10 @@ export default function RideCard({
         </span>
       )}
     </h3>
-  
+    
+
+    <p className="text-sm">📍 From: {starting_location}</p>
+
     <div className="flex justify-between items-center mb-2">
       <p className="text-sm">📅 {date}</p>
       {category && (

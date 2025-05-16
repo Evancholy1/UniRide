@@ -8,6 +8,7 @@ import Image from 'next/image'
 interface _RideFromDB {
   id: string
   destination: string
+  starting_location: string
   date: string
   seats_left: number
   driver_id: string
@@ -15,18 +16,20 @@ interface _RideFromDB {
   category: string
   driver: {
     name: string
+    verified: boolean
   }
 }
 
 interface TransformedRide {
   id: string
   destination: string
+  starting_location: string
   date: string
   seats_left: number
   driver: string
   notes: string
   category: string
-  verified?: boolean
+  verified: boolean  // Changed from optional to required boolean
 }
 
 export async function getServerSideProps() {
@@ -47,11 +50,12 @@ export async function getServerSideProps() {
 
   const transformedRides = (rides ?? []).map(ride => ({
     id: ride.id,
+    starting_location: ride.starting_location,
     destination: ride.destination,
     date: ride.date,
     seats_left: ride.seats_left,
     driver: ride.driver?.name || 'Unknown',
-    verified: ride.driver?.verified || false,
+    verified: ride.driver?.verified === true, // Explicitly convert to boolean
     notes: ride.ride_description,
     category: ride.category || 'Other'
   }))
@@ -95,37 +99,63 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
       } else {
         const transformedRides = (rides ?? []).map(ride => ({
           id: ride.id,
+          starting_location: ride.starting_location,
           destination: ride.destination,
           date: ride.date,
           seats_left: ride.seats_left,
           driver: ride.driver?.name || 'Unknown',
+          verified: ride.driver?.verified === true, // Explicitly convert to boolean
           notes: ride.ride_description,
           category: ride.category || 'Other'
         }))
         setRides(transformedRides)
+        setFilteredRides(transformedRides)
       }
 
       setLoading(false)
     }
 
     checkUserAndLoad()
-  }, [])
+  }, [router])
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredRides(rides)
+    const q = searchQuery.trim().toLowerCase()
+  
+    // If the query contains “verified”, show only verified rides
+    if (q.includes('verified')) {
+      setFilteredRides(rides.filter(ride => ride.verified === true))
       return
     }
 
-    const query = searchQuery.toLowerCase()
-    const filtered = rides.filter(ride => 
-      ride.destination.toLowerCase().includes(query) ||
-      ride.driver.toLowerCase().includes(query) ||
-      ride.category.toLowerCase().includes(query)
+    if (q.includes('student')) {
+      setFilteredRides(rides.filter(ride => ride.verified === true))
+      return
+    }
+  
+    // If the query contains “unverified”, show only unverified rides
+    if (q.includes('unverified')) {
+      setFilteredRides(rides.filter(ride => ride.verified === false))
+      return
+    }
+  
+    // Empty query: reset
+    if (q === '') {
+      setFilteredRides(rides)
+      return
+    }
+  
+    // Otherwise do the normal text-based filter
+    const filtered = rides.filter(ride =>
+      ride.destination.toLowerCase().includes(q) ||
+      ride.starting_location.toLowerCase().includes(q) ||
+      ride.driver.toLowerCase().includes(q) ||
+      ride.category.toLowerCase().includes(q)
     )
+  
     setFilteredRides(filtered)
   }, [searchQuery, rides])
-
+  
+  
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
@@ -153,13 +183,19 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
   
         <div className="text-right text-sm space-y-1">
           <p className="text-gray-300">Welcome, {userEmail}</p>
+          <button 
+            onClick={handleLogout} 
+            className="text-blue-400 hover:text-blue-300 underline"
+          >
+            Logout
+          </button>
         </div>
       </div>
   
       <div className="mb-6">
         <Input
           type="text"
-          placeholder="Search by destination, driver, or category..."
+          placeholder="Search by destination, starting location, driver, or category... (try 'verified' or 'unverified')"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400"
@@ -172,13 +208,14 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
             <HoverEffect
               items={filteredRides.map((ride) => ({
                 id: ride.id,
+                starting_location: ride.starting_location,
                 destination: ride.destination,
                 date: ride.date,
-                driver: ride.driver,           // ✅ already a string
+                driver: ride.driver,
                 seats_left: ride.seats_left,
                 notes: ride.notes,
                 category: ride.category,
-                verified: ride.verified,       // ✅ this is the actual field
+                verified: ride.verified,
                 link: `/ride/${ride.id}`,
               }))}
             />

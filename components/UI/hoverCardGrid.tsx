@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 type RideCardItem = {
+  starting_location: string
   destination: string
   date: string
   driver: string
@@ -10,6 +11,7 @@ type RideCardItem = {
   link: string
   category?: string
   notes?: string
+  verified?: boolean
 }
 
 type DashboardCardItem = {
@@ -52,11 +54,7 @@ export const HoverEffect = ({
 
   return (
     <div className="max-w-[1400px] mx-auto px-4">
-      <div
-      className={cn("grid-autofit", // 💡 Core rule
-          className
-        )}
-      >
+      <div className={cn("grid-autofit", className)}>
         {items.map((item, idx) => (
           <a
             href={item.link}
@@ -68,7 +66,7 @@ export const HoverEffect = ({
             <AnimatePresence>
               {hoveredIndex === idx && (
                 <motion.span
-                  className="absolute inset-0 h-full w-full bg-gray/18 dark:bg-gray/5  block rounded-3xl"
+                  className="absolute inset-0 h-full w-full bg-gray/18 dark:bg-gray/5 block rounded-3xl"
                   layoutId="hoverBackground"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, transition: { duration: 0.15 } }}
@@ -76,40 +74,59 @@ export const HoverEffect = ({
                 />
               )}
             </AnimatePresence>
-            <Card 
-              hasNotes={isRideCardItem(item) && Boolean(item.notes && item.notes.length > 0)}
-            >
-              <div className="flex justify-between items-center mb-3">
+
+            <Card hasNotes={isRideCardItem(item) && Boolean(item.notes)}>
+              {isRideCardItem(item) && (
+                <div className="flex justify-end gap-2 mb-2">
+                  {item.category && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
+                      {getCategoryIcon(item.category)} {item.category}
+                    </span>
+                  )}
+                  {item.verified && (
+                    <span
+                      title="Verified Student"
+                      className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-semibold whitespace-nowrap"
+                    >
+                      ✔️ Student
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="mb-3 text-center">
                 <CardTitle>
                   {isDashboardCardItem(item) ? item.title : item.destination}
                 </CardTitle>
-                {isRideCardItem(item) && item.category && (
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    {getCategoryIcon(item.category)} {item.category}
-                  </span>
-                )}
               </div>
+
               <CardDescription>
                 {isDashboardCardItem(item) ? item.description : (
                   <>
-                    <div className="text-center">📅 {new Date(item.date).toLocaleString()}</div>
+                    <div className="text-center">📍 From: {item.starting_location}</div>
+                    <div className="text-center">
+                      📅 {new Date(item.date).toLocaleString()}
+                    </div>
                     <div className="text-center">👤 Driver: {item.driver}</div>
                     <div className="text-center">🚗 {item.seats_left} seat(s) left</div>
                     {item.notes && (
                       <div className="text-center mt-4 italic text-sm border-t border-gray-700 pt-3">
-                        &quot;{item.notes}&quot;
+                        "{item.notes}"
                       </div>
                     )}
                   </>
                 )}
               </CardDescription>
             </Card>
+
+
           </a>
         ))}
       </div>
     </div>
   )
 }
+
 
 export const Card = ({
   className,
@@ -122,10 +139,9 @@ export const Card = ({
 }) => {
   return (
     <div
-      className={cn(
-        "w-[331px] h-[250px] bg-[#1e1e1e] text-white rounded-xl p-4 border border-gray-700 shadow-md transition-all duration-200 hover:shadow-xl hover:border-green-500",
-        hasNotes ? "h-[270px]" : "h-[250px]", // optional tweak if notes need more height
-        className
+    className={cn(
+      "w-[331px] bg-[#1e1e1e] text-white rounded-xl p-4 border border-gray-700 shadow-md transition-all duration-200 hover:shadow-xl hover:border-green-500",
+      className
       )}
     >
       <div className="relative z-50">

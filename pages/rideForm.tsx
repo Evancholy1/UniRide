@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
+import { useStyleRegistry } from 'styled-jsx'
+import { start } from 'repl'
 
 export default function CreateRidePage() {
   const [destination, setDestination] = useState('')
+  const [starting_location, setStartingLocation] = useState('')
   const [date, setDate] = useState('')
   const [seats, setSeats] = useState(1)
   const [notes, setNotes] = useState('')
@@ -38,6 +41,7 @@ export default function CreateRidePage() {
 
     const { error: insertError } = await supabase.from('rides').insert({
       destination,
+      starting_location,
       date,
       seats_left: seats,
       ride_description: notes,
@@ -60,6 +64,16 @@ export default function CreateRidePage() {
       {error && <p className="text-red-500 mb-3">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+
+      <input
+          type="text"
+          placeholder="Starting Point (e.g., Boulder)"
+          className="w-full border p-2 rounded"
+          value={starting_location}
+          onChange={e => setStartingLocation(e.target.value)}
+          required
+        />
+
         <input
           type="text"
           placeholder="Destination (e.g., Eldora)"
