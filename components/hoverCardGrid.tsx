@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 type RideCardItem = {
+  starting_location: string
   destination: string
   date: string
   driver: string
@@ -82,6 +83,7 @@ export const HoverEffect = ({
             <CardDescription>
               {'description' in item ? item.description : (
                 <>
+                  <div className="text-center">📍 From: {item.starting_location}</div>
                   <div className="text-center">📅 {new Date(item.date).toLocaleString()}</div>
                   <div className="text-center">👤 Driver: {item.driver}</div>
                   <div className="text-center">🚗 {item.seats_left} seat(s) left</div>
@@ -132,7 +134,7 @@ export const CardTitle = ({
   children: React.ReactNode
 }) => (
   <h4 className={cn("text-xl font-bold text-white truncate", className)}>
-  {children}
+  {children}f
   </h4>
 )
 

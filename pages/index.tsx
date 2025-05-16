@@ -7,6 +7,7 @@ import { Input } from '@/components/UI/input'
 interface _RideFromDB {
   id: string
   destination: string
+  starting_location: string  // Added this field to the interface
   date: string
   seats_left: number
   driver_id: string
@@ -14,12 +15,14 @@ interface _RideFromDB {
   category: string
   driver: {
     name: string
+    verified: boolean
   }
 }
 
 interface TransformedRide {
   id: string
   destination: string
+  starting_location: string
   date: string
   seats_left: number
   driver: string
@@ -46,6 +49,7 @@ export async function getServerSideProps() {
 
   const transformedRides = (rides ?? []).map(ride => ({
     id: ride.id,
+    starting_location: ride.starting_location,
     destination: ride.destination,
     date: ride.date,
     seats_left: ride.seats_left,
@@ -94,21 +98,24 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
       } else {
         const transformedRides = (rides ?? []).map(ride => ({
           id: ride.id,
+          starting_location: ride.starting_location,  // Make sure this is included
           destination: ride.destination,
           date: ride.date,
           seats_left: ride.seats_left,
           driver: ride.driver?.name || 'Unknown',
+          verified: ride.driver?.verified || false,  // Add verified property
           notes: ride.ride_description,
           category: ride.category || 'Other'
         }))
         setRides(transformedRides)
+        setFilteredRides(transformedRides)  // Also update filtered rides
       }
 
       setLoading(false)
     }
 
     checkUserAndLoad()
-  }, [])
+  }, [router])
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -119,6 +126,7 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
     const query = searchQuery.toLowerCase()
     const filtered = rides.filter(ride => 
       ride.destination.toLowerCase().includes(query) ||
+      (ride.starting_location && ride.starting_location.toLowerCase().includes(query)) ||  // Add starting_location to search
       ride.driver.toLowerCase().includes(query) ||
       ride.category.toLowerCase().includes(query)
     )
@@ -143,13 +151,19 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
   
         <div className="text-right text-sm space-y-1">
           <p className="text-gray-300">Welcome, {userEmail}</p>
+          <button 
+            onClick={handleLogout} 
+            className="text-blue-400 hover:text-blue-300 underline"
+          >
+            Logout
+          </button>
         </div>
       </div>
   
       <div className="mb-6">
         <Input
           type="text"
-          placeholder="Search by destination, driver, or category..."
+          placeholder="Search by destination, starting location, driver, or category..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400"
@@ -162,13 +176,14 @@ export default function HomePage({ rides: initialRides }: { rides: TransformedRi
             <HoverEffect
               items={filteredRides.map((ride) => ({
                 id: ride.id,
+                starting_location: ride.starting_location,
                 destination: ride.destination,
                 date: ride.date,
-                driver: ride.driver,           // ✅ already a string
+                driver: ride.driver,
                 seats_left: ride.seats_left,
                 notes: ride.notes,
                 category: ride.category,
-                verified: ride.verified,       // ✅ this is the actual field
+                verified: ride.verified,
                 link: `/ride/${ride.id}`,
               }))}
             />

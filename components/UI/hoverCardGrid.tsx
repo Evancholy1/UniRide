@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 type RideCardItem = {
+  starting_location: string
   destination: string
   date: string
   driver: string
@@ -10,6 +11,7 @@ type RideCardItem = {
   link: string
   category?: string
   notes?: string
+  verified?: boolean
 }
 
 type DashboardCardItem = {
@@ -92,8 +94,16 @@ export const HoverEffect = ({
               <CardDescription>
                 {isDashboardCardItem(item) ? item.description : (
                   <>
+                    <div className="text-center">📍 From: {item.starting_location}</div>
                     <div className="text-center">📅 {new Date(item.date).toLocaleString()}</div>
-                    <div className="text-center">👤 Driver: {item.driver}</div>
+                    <div className="text-center flex items-center justify-center gap-1">
+                      👤 Driver: {item.driver}
+                      {item.verified && (
+                        <span title="Verified Student" className="text-green-500 text-xs font-semibold">
+                          ✔️
+                        </span>
+                      )}
+                    </div>
                     <div className="text-center">🚗 {item.seats_left} seat(s) left</div>
                     {item.notes && (
                       <div className="text-center mt-4 italic text-sm border-t border-gray-700 pt-3">
@@ -102,7 +112,7 @@ export const HoverEffect = ({
                     )}
                   </>
                 )}
-              </CardDescription>
+            </CardDescription>
             </Card>
           </a>
         ))}
@@ -122,10 +132,9 @@ export const Card = ({
 }) => {
   return (
     <div
-      className={cn(
-        "w-[331px] h-[250px] bg-[#1e1e1e] text-white rounded-xl p-4 border border-gray-700 shadow-md transition-all duration-200 hover:shadow-xl hover:border-green-500",
-        hasNotes ? "h-[270px]" : "h-[250px]", // optional tweak if notes need more height
-        className
+    className={cn(
+      "w-[331px] bg-[#1e1e1e] text-white rounded-xl p-4 border border-gray-700 shadow-md transition-all duration-200 hover:shadow-xl hover:border-green-500",
+      className
       )}
     >
       <div className="relative z-50">
